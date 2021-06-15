@@ -1,0 +1,14 @@
+name: time_it
+
+version: 0.1.0-dev
+publish_to: none
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
