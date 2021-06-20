@@ -4,7 +4,6 @@
 1. Wakelock.
 1. Controls (pause/resume, register round, show last round duration).
 1. Workout summary.
-1. GitHub + actions.
 1. More modes (current: AMRAP for rounds):
    1. Stopwatch:
       1. Basically AMRAP, but with time counted up instead of down.
