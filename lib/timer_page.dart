@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quiver/async.dart';
+import 'package:wakelock/wakelock.dart';
 
 class TimerPage extends StatefulWidget {
   final Duration interval;
@@ -98,6 +99,12 @@ String _formatDuration(Duration duration) {
   return sb.toString();
 }
 
+// Wakelock integration: the OS must not lock the screen as long as there is an
+// active timer. The wakelock is again disabled in the following scenarios:
+// - The active timer finishes, even if the user stays on this page (all
+//   activity is done so there is no point in preventing screen lock).
+// - The user leaves this page and there is an active timer. (If there is no
+//   active timer, the previous scenario will have taken care of the wakelock.)
 class _TimerNotifier extends StateNotifier<Duration> {
   final Duration interval;
 
@@ -115,6 +122,8 @@ class _TimerNotifier extends StateNotifier<Duration> {
       (timer) => state = timer.remaining,
       onDone: _cleanUp,
     );
+
+    Wakelock.enable();
   }
 
   void stop() {
@@ -124,6 +133,8 @@ class _TimerNotifier extends StateNotifier<Duration> {
   }
 
   void _cleanUp() {
+    Wakelock.disable();
+
     _timerSubscription.cancel();
   }
 }
