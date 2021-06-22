@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quiver/async.dart';
 import 'package:wakelock/wakelock.dart';
+
+import 'round_data.dart';
 
 class TimerPage extends StatefulWidget {
   final Duration interval;
@@ -17,6 +20,7 @@ class TimerPage extends StatefulWidget {
 
 class _TimerPageState extends State<TimerPage> {
   late final _TimerNotifier _timerNotifier;
+  late final _RoundDataNotifier _roundDataNotifier;
 
   @override
   void initState() {
@@ -25,6 +29,10 @@ class _TimerPageState extends State<TimerPage> {
     _timerNotifier = context.read(
       _timerNotifierProvider(widget.interval).notifier,
     )..start();
+
+    _roundDataNotifier = context.read(
+      _roundDataNotifierProvider.notifier,
+    );
   }
 
   @override
@@ -52,9 +60,50 @@ class _TimerPageState extends State<TimerPage> {
   }
 
   Widget _roundsWidget() {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {},
+    return Consumer(
+      builder: (context, watch, child) {
+        final timerStatus = watch(
+          _timerNotifierProvider(widget.interval),
+        ).status;
+
+        final roundData = watch(_roundDataNotifierProvider);
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: timerStatus != _TimerStatus.completed
+              ? () => _roundDataNotifier.registerRound(_timerNotifier.elapsed)
+              : null,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: FittedBox(
+                  child: Text(
+                    roundData != null
+                        ? _formatRoundDuration(roundData.lastRoundDuration)
+                        : '--',
+                    style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                      fontFeatures: [
+                        const FontFeature.tabularFigures(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: FittedBox(
+                  child: Text(
+                    roundData != null
+                        ? '${roundData.roundDurations.length}'
+                        : '0',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -95,7 +144,7 @@ class _TimerPageState extends State<TimerPage> {
               : null,
           child: FittedBox(
             child: Text(
-              _formatDuration(timerState.remaining),
+              _formatRemaining(timerState.remaining),
               textAlign: TextAlign.center,
               style: theme.textTheme.headline2!.copyWith(
                 color: durationColor,
@@ -136,7 +185,30 @@ class _TimerPageState extends State<TimerPage> {
   }
 }
 
-String _formatDuration(Duration duration) {
+String _formatRoundDuration(Duration duration) {
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60);
+  final seconds = duration.inMilliseconds.remainder(60000) / 1000;
+
+  final sb = StringBuffer();
+
+  if (hours > 0) {
+    // If 'hours' comes first, no '0' padding needed.
+    sb..write(hours.toString())..write(':');
+  }
+
+  // 'minutes' and 'seconds' are added unconditionally, even if 0, and are
+  // padded with '0'.
+
+  sb
+    ..write(minutes.toString().padLeft(2, '0'))
+    ..write(':')
+    ..write(seconds.toStringAsFixed(2).padLeft(5, '0'));
+
+  return sb.toString();
+}
+
+String _formatRemaining(Duration duration) {
   final hours = duration.inHours;
   final minutes = duration.inMinutes.remainder(60);
   final seconds = duration.inMilliseconds.remainder(60000) / 1000;
@@ -215,8 +287,14 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
   // means the timer is running of has completed naturally.
   _TimerStatus? _preemptiveInterruptionStatus;
 
+  // When a timer is paused and resumed, in reality a new timer is created and
+  // started, so the 'elapsed' of the previous one would be lost. To fix this,
+  // it is updated here and taken into account.
+  Duration _elapsedSinceBeginning;
+
   _TimerNotifier(this.interval)
-      : super(_TimerState(interval, _TimerStatus.paused));
+      : _elapsedSinceBeginning = Duration.zero,
+        super(_TimerState(interval, _TimerStatus.paused));
 
   void start() => _start(interval);
 
@@ -227,6 +305,12 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
   void pause() => _stop(false);
 
   void resume() => _start(state.remaining);
+
+  Duration get elapsed {
+    final currentElapsed = _timer?.elapsed ?? Duration.zero;
+
+    return _elapsedSinceBeginning + currentElapsed;
+  }
 
   void _start(Duration remaining) {
     if (_isRunning) {
@@ -253,8 +337,10 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
 
     _preemptiveInterruptionStatus =
         isStopped ? _TimerStatus.stopped : _TimerStatus.paused;
+
     // Cancelling will cause the subscription's 'onDone' handler to be invoked.
-    _timer!.cancel();
+    final timer = _timer!..cancel();
+    _elapsedSinceBeginning += timer.elapsed;
   }
 
   void _tick(CountdownTimer timer) {
@@ -276,6 +362,10 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
       _preemptiveInterruptionStatus ?? _TimerStatus.completed,
     );
     _preemptiveInterruptionStatus = null;
+
+    if (state.status == _TimerStatus.completed) {
+      _elapsedSinceBeginning = interval;
+    }
   }
 
   bool get _isRunning => _timer?.isRunning ?? false;
@@ -289,4 +379,47 @@ final _timerNotifierProvider = StateNotifierProvider.autoDispose
 
     return timerNotifier;
   },
+);
+
+class _RoundDataNotifier extends StateNotifier<RoundData?> {
+  final List<Duration> _roundDurations;
+
+  Duration _previousElapsed;
+
+  int? _slowestRoundIndex;
+  int? _fastestRoundIndex;
+
+  _RoundDataNotifier()
+      : _roundDurations = [],
+        _previousElapsed = Duration.zero,
+        super(null);
+
+  void registerRound(Duration elapsed) {
+    final roundDuration = elapsed - _previousElapsed;
+
+    if (_slowestRoundIndex == null ||
+        _roundDurations[_slowestRoundIndex!] < roundDuration) {
+      _slowestRoundIndex = _roundDurations.length;
+    }
+    if (_fastestRoundIndex == null ||
+        _roundDurations[_fastestRoundIndex!] > roundDuration) {
+      _fastestRoundIndex = _roundDurations.length;
+    }
+
+    _roundDurations.add(roundDuration);
+
+    _previousElapsed = elapsed;
+
+    state = RoundData(
+      roundDurations: UnmodifiableListView(_roundDurations),
+      slowestRoundIndex: _slowestRoundIndex!,
+      fastestRoundIndex: _fastestRoundIndex!,
+      averageRoundDuration: elapsed ~/ _roundDurations.length,
+    );
+  }
+}
+
+final _roundDataNotifierProvider =
+    StateNotifierProvider.autoDispose<_RoundDataNotifier, RoundData?>(
+  (ref) => _RoundDataNotifier(),
 );
