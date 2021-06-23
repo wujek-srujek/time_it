@@ -8,6 +8,8 @@ import 'package:quiver/async.dart';
 import 'package:wakelock/wakelock.dart';
 
 import 'round_data.dart';
+import 'round_duration_formatter.dart';
+import 'round_summary_page.dart';
 
 class TimerPage extends StatefulWidget {
   final Duration interval;
@@ -68,11 +70,26 @@ class _TimerPageState extends State<TimerPage> {
 
         final roundData = watch(_roundDataNotifierProvider);
 
+        final void Function()? onTap;
+        if (timerStatus != _TimerStatus.completed) {
+          onTap = () => _roundDataNotifier.registerRound(
+                _timerNotifier.elapsed,
+              );
+        } else if (roundData != null) {
+          onTap = () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute<void>(
+                  builder: (context) {
+                    return RoundSummaryPage(roundData: roundData);
+                  },
+                ),
+              );
+        } else {
+          onTap = null;
+        }
+
         return InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: timerStatus != _TimerStatus.completed
-              ? () => _roundDataNotifier.registerRound(_timerNotifier.elapsed)
-              : null,
+          onTap: onTap,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -80,7 +97,7 @@ class _TimerPageState extends State<TimerPage> {
                 child: FittedBox(
                   child: Text(
                     roundData != null
-                        ? _formatRoundDuration(roundData.lastRoundDuration)
+                        ? formatRoundDuration(roundData.lastRoundDuration)
                         : '--',
                     style: Theme.of(context).textTheme.bodyText2!.copyWith(
                       fontFeatures: [
@@ -183,29 +200,6 @@ class _TimerPageState extends State<TimerPage> {
       },
     );
   }
-}
-
-String _formatRoundDuration(Duration duration) {
-  final hours = duration.inHours;
-  final minutes = duration.inMinutes.remainder(60);
-  final seconds = duration.inMilliseconds.remainder(60000) / 1000;
-
-  final sb = StringBuffer();
-
-  if (hours > 0) {
-    // If 'hours' comes first, no '0' padding needed.
-    sb..write(hours.toString())..write(':');
-  }
-
-  // 'minutes' and 'seconds' are added unconditionally, even if 0, and are
-  // padded with '0'.
-
-  sb
-    ..write(minutes.toString().padLeft(2, '0'))
-    ..write(':')
-    ..write(seconds.toStringAsFixed(2).padLeft(5, '0'));
-
-  return sb.toString();
 }
 
 String _formatRemaining(Duration duration) {

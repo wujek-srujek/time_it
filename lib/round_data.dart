@@ -23,4 +23,6 @@ class RoundData {
   Duration get fastestRoundDuration => roundDurations[fastestRoundIndex];
 
   Duration get lastRoundDuration => roundDurations.last;
+
+  bool get areAllRoundDurationsEqual => slowestRoundIndex == fastestRoundIndex;
 }
