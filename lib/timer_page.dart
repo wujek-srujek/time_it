@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quiver/async.dart';
 import 'package:wakelock/wakelock.dart';
 
+import 'duration_x.dart';
 import 'round_data.dart';
 import 'round_duration_formatter.dart';
 import 'round_summary_page.dart';
@@ -203,23 +204,21 @@ class _TimerPageState extends State<TimerPage> {
 }
 
 String _formatRemaining(Duration duration) {
-  final hours = duration.inHours;
-  final minutes = duration.inMinutes.remainder(60);
-  final seconds = duration.inMilliseconds.remainder(60000) / 1000;
+  final unpacked = duration.unpack();
 
   final sb = StringBuffer();
 
-  if (hours > 0) {
+  if (unpacked.hours > 0) {
     // If 'hours' comes first, no '0' padding needed.
-    sb..write(hours.toString())..write(':');
+    sb..write(unpacked.hours.toString())..write(':');
   }
 
-  if (hours > 0 || minutes > 0) {
+  if (unpacked.hours > 0 || unpacked.minutes > 0) {
     // Even if 'minutes' is 0 but hours' exists, 'minutes' must be added.
     // If 'minutes' comes first, no '0' padding needed; if 'hours' comes
     // before, '0' padding needed.
-    var minutesString = minutes.toString();
-    if (hours > 0) {
+    var minutesString = unpacked.minutes.toString();
+    if (unpacked.hours > 0) {
       minutesString = minutesString.padLeft(2, '0');
     }
     sb..write(minutesString)..write(':');
@@ -227,14 +226,14 @@ String _formatRemaining(Duration duration) {
 
   // 'seconds' is added unconditionally, even if 0.
   final String b;
-  if (hours == 0 && minutes == 0 && seconds < 10) {
+  if (unpacked.hours == 0 && unpacked.minutes == 0 && unpacked.seconds < 10) {
     // If only total < 10 'seconds' remain, fraction second with 1 decimal place
     // is added. Any digits after the first decimal point are truncated.
-    final secondsWithFirstDecimal = (seconds * 10).toInt() / 10;
+    final secondsWithFirstDecimal = (unpacked.seconds * 10).toInt() / 10;
     b = secondsWithFirstDecimal.toStringAsFixed(1);
   } else {
     // In all other cases only whole seconds are used (fractions truncated).
-    b = seconds.toInt().toString().padLeft(2, '0');
+    b = unpacked.seconds.toInt().toString().padLeft(2, '0');
   }
   sb.write(b);
 
