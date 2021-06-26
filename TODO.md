@@ -1,6 +1,5 @@
 # TODO
 
-1. Sound on end.
 1. More modes (current: AMRAP for rounds):
    1. Stopwatch:
       1. Basically AMRAP, but with time counted up instead of down.

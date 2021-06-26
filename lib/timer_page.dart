@@ -8,6 +8,7 @@ import 'package:quiver/async.dart';
 import 'package:wakelock/wakelock.dart';
 
 import 'duration_x.dart';
+import 'player.dart';
 import 'round_data.dart';
 import 'round_duration_formatter.dart';
 import 'round_summary_page.dart';
@@ -273,6 +274,7 @@ class _TimerState {
 //   running timer, the previous scenario will have taken care of the wakelock.)
 class _TimerNotifier extends StateNotifier<_TimerState> {
   final Duration interval;
+  final void Function() onComplete;
 
   CountdownTimer? _timer;
   StreamSubscription<CountdownTimer>? _timerSubscription;
@@ -285,7 +287,7 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
   // it is updated here and taken into account.
   Duration _elapsedSinceBeginning;
 
-  _TimerNotifier(this.interval)
+  _TimerNotifier(this.interval, this.onComplete)
       : _elapsedSinceBeginning = Duration.zero,
         super(_TimerState(interval, _TimerStatus.paused));
 
@@ -358,6 +360,7 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
 
     if (state.status == _TimerStatus.completed) {
       _elapsedSinceBeginning = interval;
+      onComplete();
     }
   }
 
@@ -367,7 +370,11 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
 final _timerNotifierProvider = StateNotifierProvider.autoDispose
     .family<_TimerNotifier, _TimerState, Duration>(
   (ref, interval) {
-    final timerNotifier = _TimerNotifier(interval);
+    final player = ref.watch(playerProvider);
+    final timerNotifier = _TimerNotifier(
+      interval,
+      player.playTimerAlarm,
+    );
     ref.onDispose(timerNotifier.stop);
 
     return timerNotifier;
