@@ -33,4 +33,7 @@ which are **NOT** checked in. Anybody who wants to build this app needs to:
 Alternatively, remove Firebase integration in code. Note that it will limit the
 functionality of this application. If you do this, also edit the workflow file
 mentioned above by removing the step creating the dummy Firebase config file.
->>>>>>> 2de12fa (Integrate Firebase)
+
+# Used Firebase features
+
+- Crashlytics.

@@ -14,7 +14,6 @@
       1. With round registering (to allow pacing optimizations).
 1. Lock orientation to portrait or support landscape mode properly.
 1. Version info.
-1. Crashlytics.
 1. I18n.
 1. Mode config peristence.
    1. Mmaybe even workout mamagement?
