@@ -17,4 +17,6 @@ jobs:
     - run: flutter pub get
     - run: flutter format --dry-run --set-exit-if-changed lib
     - run: flutter analyze
+    # Create a minimal dummy Firebase config file, the real one is unavailable.
+    - run: echo '${{secrets.DUMMY_GOOGLE_SERVICES_JSON}}' > android/app/google-services.json
     - run: flutter build apk
