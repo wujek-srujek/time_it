@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import 'orientation_x.dart';
 import 'round_data.dart';
 import 'round_duration_formatter.dart';
 
@@ -18,6 +19,23 @@ class RoundSummaryPage extends StatelessWidget {
     final slowestRoundTextColor = colorScheme.error;
     final fastestRoundTextColor = colorScheme.primary;
 
+    final orientation = MediaQuery.of(context).orientation;
+    final isPortrait = orientation == Orientation.portrait;
+
+    final roundStatisticsWidget = roundData.areAllRoundDurationsEqual
+        ? null
+        : Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            child: _RoundStatisticsWidget(
+              roundData: roundData,
+              slowestRoundTextColor: slowestRoundTextColor,
+              fastestRoundTextColor: fastestRoundTextColor,
+            ),
+          );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Round summary'),
@@ -25,21 +43,18 @@ class RoundSummaryPage extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Column(
+          child: Flex(
+            direction: orientation.asAxis(),
             children: [
-              if (!roundData.areAllRoundDurationsEqual)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+              if (roundStatisticsWidget != null)
+                if (isPortrait)
+                  roundStatisticsWidget
+                else
+                  Expanded(
+                    child: roundStatisticsWidget,
                   ),
-                  child: _RoundStatisticsWidget(
-                    roundData: roundData,
-                    slowestRoundTextColor: slowestRoundTextColor,
-                    fastestRoundTextColor: fastestRoundTextColor,
-                  ),
-                ),
               Expanded(
+                flex: isPortrait ? 4 : 1,
                 child: ListView.builder(
                   itemCount: roundData.roundDurations.length,
                   itemBuilder: (context, index) {
@@ -99,9 +114,12 @@ class _RoundStatisticsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+    final isPortrait = orientation == Orientation.portrait;
+
     final baseTextStyle = Theme.of(context).textTheme.headline5!.copyWith(
-      fontFeatures: [
-        const FontFeature.tabularFigures(),
+      fontFeatures: const [
+        FontFeature.tabularFigures(),
       ],
     );
 
@@ -114,15 +132,19 @@ class _RoundStatisticsWidget extends StatelessWidget {
 
       return TableRow(
         children: [
-          Text(
-            label,
-            style: textStyle,
-          ),
-          Text(
-            formatRoundDuration(duration),
-            style: textStyle,
-          ),
-        ],
+          label,
+          formatRoundDuration(duration),
+        ]
+            .map(
+              (text) => Padding(
+                padding: EdgeInsets.symmetric(vertical: isPortrait ? 0 : 16),
+                child: Text(
+                  text,
+                  style: textStyle,
+                ),
+              ),
+            )
+            .toList(),
       );
     }
 

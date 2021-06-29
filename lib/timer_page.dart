@@ -8,6 +8,7 @@ import 'package:quiver/async.dart';
 import 'package:wakelock/wakelock.dart';
 
 import 'duration_x.dart';
+import 'orientation_x.dart';
 import 'player.dart';
 import 'round_data.dart';
 import 'round_duration_formatter.dart';
@@ -45,7 +46,8 @@ class _TimerPageState extends State<TimerPage> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Column(
+          child: Flex(
+            direction: MediaQuery.of(context).orientation.asAxis(),
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
