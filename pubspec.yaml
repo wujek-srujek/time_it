@@ -27,6 +27,8 @@ flutter:
   uses-material-design: true
 
 # Run: flutter pub run flutter_launcher_icons:main
+# Android adaptive icon is created manually using Asset Studio as this library
+# doesn't support SVG.
 flutter_icons:
   android: true
   image_path_android: images/launcher/stopwatch_android.png
