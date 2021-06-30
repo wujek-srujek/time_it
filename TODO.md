@@ -14,7 +14,6 @@
       1. Basically a single interval with no predefined round count.
       1. With round registering (to allow pacing optimizations).
 1. Lock orientation to portrait or support landscape mode properly.
-1. Custom launcher icon.
 1. Version info.
 1. Crashlytics.
 1. I18n.
