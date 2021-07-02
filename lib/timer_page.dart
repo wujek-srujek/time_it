@@ -1,17 +1,13 @@
-import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:quiver/async.dart';
-import 'package:wakelock/wakelock.dart';
 
 import 'duration_x.dart';
-import 'interval_config.dart';
-import 'player.dart';
 import 'round_data.dart';
 import 'round_duration_formatter.dart';
 import 'round_summary_page.dart';
+import 'timer.dart';
 
 class TimerPage extends StatelessWidget {
   const TimerPage();
@@ -43,15 +39,15 @@ class TimerPage extends StatelessWidget {
   Widget _roundsWidget() {
     return Consumer(
       builder: (context, watch, child) {
-        final timerStatus = watch(_timerStatusProvider);
+        final timerStatus = watch(timerStatusProvider);
         final roundData = watch(roundDataNotifierProvider);
 
         final void Function()? onTap;
-        if (timerStatus != _TimerStatus.completed) {
+        if (timerStatus != TimerStatus.completed) {
           onTap = () {
             final elapsed = context
                 .read(
-                  _timerNotifierProvider.notifier,
+                  timerNotifierProvider.notifier,
                 )
                 .elapsed;
 
@@ -111,7 +107,7 @@ class TimerPage extends StatelessWidget {
   Widget _countdownWidget() {
     return Consumer(
       builder: (context, watch, child) {
-        final timerState = watch(_timerNotifierProvider);
+        final timerState = watch(timerNotifierProvider);
         final timerStatus = timerState.status;
 
         final theme = Theme.of(context);
@@ -119,14 +115,14 @@ class TimerPage extends StatelessWidget {
 
         final Color durationColor;
         switch (timerStatus) {
-          case _TimerStatus.running:
+          case TimerStatus.running:
             durationColor = colorScheme.primary;
             break;
-          case _TimerStatus.paused:
+          case TimerStatus.paused:
             durationColor = colorScheme.error;
             break;
-          case _TimerStatus.completed:
-          case _TimerStatus.stopped:
+          case TimerStatus.completed:
+          case TimerStatus.stopped:
             durationColor = colorScheme.secondary;
         }
 
@@ -135,10 +131,10 @@ class TimerPage extends StatelessWidget {
           onTap: !timerStatus.isFinished
               ? () {
                   final timerNotifier = context.read(
-                    _timerNotifierProvider.notifier,
+                    timerNotifierProvider.notifier,
                   );
 
-                  if (timerStatus == _TimerStatus.running) {
+                  if (timerStatus == TimerStatus.running) {
                     timerNotifier.pause();
                   } else {
                     timerNotifier.resume();
@@ -165,10 +161,10 @@ class TimerPage extends StatelessWidget {
   Widget _backButton() {
     return Consumer(
       builder: (context, watch, child) {
-        final timerStatus = watch(_timerStatusProvider);
+        final timerStatus = watch(timerStatusProvider);
 
         return FloatingActionButton(
-          backgroundColor: timerStatus == _TimerStatus.completed
+          backgroundColor: timerStatus == TimerStatus.completed
               ? null
               : Theme.of(context).colorScheme.error,
           onPressed: () {
@@ -222,149 +218,3 @@ String _formatRemaining(Duration duration) {
 
   return sb.toString();
 }
-
-enum _TimerStatus {
-  running,
-  paused,
-  // Stopped preemptively by the user.
-  stopped,
-  // Stopped naturally, i.e. it run to the end.
-  completed,
-}
-
-extension _TimerStatusX on _TimerStatus {
-  bool get isFinished =>
-      this == _TimerStatus.stopped || this == _TimerStatus.completed;
-}
-
-@immutable
-class _TimerState {
-  final Duration remaining;
-  final _TimerStatus status;
-
-  const _TimerState(
-    this.remaining,
-    this.status,
-  );
-}
-
-// Wakelock integration: the OS must not lock the screen as long as there is a
-// running timer. The wakelock is again disabled in the following scenarios:
-// - The running timer finishes, even if the user stays on this page (all
-//   activity is done so there is no point in preventing screen lock).
-// - The user leaves this page and there is a running timer. (If there is no
-//   running timer, the previous scenario will have taken care of the wakelock.)
-class _TimerNotifier extends StateNotifier<_TimerState> {
-  final Duration interval;
-  final void Function() onComplete;
-
-  CountdownTimer? _timer;
-  StreamSubscription<CountdownTimer>? _timerSubscription;
-  // When set, means the timer has been interrupted preemptively. When unset, it
-  // means the timer is running of has completed naturally.
-  _TimerStatus? _preemptiveInterruptionStatus;
-
-  // When a timer is paused and resumed, in reality a new timer is created and
-  // started, so the 'elapsed' of the previous one would be lost. To fix this,
-  // it is updated here and taken into account.
-  Duration _elapsedSinceBeginning;
-
-  _TimerNotifier(this.interval, this.onComplete)
-      : _elapsedSinceBeginning = Duration.zero,
-        super(_TimerState(interval, _TimerStatus.paused));
-
-  void start() => _start(interval);
-
-  void stop() => _stop(true);
-
-  // There is no concept of 'pausing' in CountdownTimer. We just stop it here,
-  // and resume will start a new one with an interval being the current state.
-  void pause() => _stop(false);
-
-  void resume() => _start(state.remaining);
-
-  Duration get elapsed {
-    final currentElapsed = _timer?.elapsed ?? Duration.zero;
-
-    return _elapsedSinceBeginning + currentElapsed;
-  }
-
-  void _start(Duration remaining) {
-    if (_isRunning) {
-      return;
-    }
-
-    _timer = CountdownTimer(
-      remaining,
-      const Duration(milliseconds: 100),
-    );
-    _timerSubscription = _timer!.listen(
-      _tick,
-      onDone: _done,
-    );
-    state = _TimerState(state.remaining, _TimerStatus.running);
-
-    Wakelock.enable();
-  }
-
-  void _stop(bool isStopped) {
-    if (!_isRunning) {
-      return;
-    }
-
-    _preemptiveInterruptionStatus =
-        isStopped ? _TimerStatus.stopped : _TimerStatus.paused;
-
-    // Cancelling will cause the subscription's 'onDone' handler to be invoked.
-    final timer = _timer!..cancel();
-    _elapsedSinceBeginning += timer.elapsed;
-  }
-
-  void _tick(CountdownTimer timer) {
-    state = _TimerState(
-      timer.remaining < Duration.zero ? Duration.zero : timer.remaining,
-      _TimerStatus.running,
-    );
-  }
-
-  void _done() {
-    Wakelock.disable();
-
-    _timerSubscription?.cancel();
-    _timerSubscription = null;
-    _timer = null;
-
-    state = _TimerState(
-      state.remaining,
-      _preemptiveInterruptionStatus ?? _TimerStatus.completed,
-    );
-    _preemptiveInterruptionStatus = null;
-
-    if (state.status == _TimerStatus.completed) {
-      _elapsedSinceBeginning = interval;
-      onComplete();
-    }
-  }
-
-  bool get _isRunning => _timer?.isRunning ?? false;
-}
-
-final _timerNotifierProvider =
-    StateNotifierProvider.autoDispose<_TimerNotifier, _TimerState>(
-  (ref) {
-    final interval = ref.watch(intervalConfigNotifierProvider).asDuration();
-    final player = ref.watch(playerProvider);
-
-    final timerNotifier = _TimerNotifier(
-      interval,
-      player.playTimerAlarm,
-    );
-    ref.onDispose(timerNotifier.stop);
-
-    return timerNotifier..start();
-  },
-);
-
-final _timerStatusProvider = Provider.autoDispose<_TimerStatus>(
-  (ref) => ref.watch(_timerNotifierProvider).status,
-);
