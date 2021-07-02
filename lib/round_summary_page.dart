@@ -1,17 +1,18 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'round_data.dart';
 import 'round_duration_formatter.dart';
 
-class RoundSummaryPage extends StatelessWidget {
-  final RoundData roundData;
-
-  const RoundSummaryPage({required this.roundData});
+class RoundSummaryPage extends ConsumerWidget {
+  const RoundSummaryPage();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ScopedReader watch) {
+    final roundData = watch(roundDataNotifierProvider)!;
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -34,7 +35,6 @@ class RoundSummaryPage extends StatelessWidget {
                     vertical: 8,
                   ),
                   child: _RoundStatisticsWidget(
-                    roundData: roundData,
                     slowestRoundTextColor: slowestRoundTextColor,
                     fastestRoundTextColor: fastestRoundTextColor,
                   ),
@@ -86,19 +86,19 @@ class RoundSummaryPage extends StatelessWidget {
   }
 }
 
-class _RoundStatisticsWidget extends StatelessWidget {
-  final RoundData roundData;
+class _RoundStatisticsWidget extends ConsumerWidget {
   final Color slowestRoundTextColor;
   final Color fastestRoundTextColor;
 
   const _RoundStatisticsWidget({
-    required this.roundData,
     required this.slowestRoundTextColor,
     required this.fastestRoundTextColor,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ScopedReader watch) {
+    final roundData = watch(roundDataNotifierProvider)!;
+
     final baseTextStyle = Theme.of(context).textTheme.headline5!.copyWith(
       fontFeatures: [
         const FontFeature.tabularFigures(),

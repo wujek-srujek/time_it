@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -45,7 +44,7 @@ class TimerPage extends StatelessWidget {
     return Consumer(
       builder: (context, watch, child) {
         final timerStatus = watch(_timerStatusProvider);
-        final roundData = watch(_roundDataNotifierProvider);
+        final roundData = watch(roundDataNotifierProvider);
 
         final void Function()? onTap;
         if (timerStatus != _TimerStatus.completed) {
@@ -58,16 +57,14 @@ class TimerPage extends StatelessWidget {
 
             context
                 .read(
-                  _roundDataNotifierProvider.notifier,
+                  roundDataNotifierProvider.notifier,
                 )
                 .registerRound(elapsed);
           };
         } else if (roundData != null) {
           onTap = () => Navigator.of(context).pushReplacement(
                 MaterialPageRoute<void>(
-                  builder: (context) {
-                    return RoundSummaryPage(roundData: roundData);
-                  },
+                  builder: (context) => const RoundSummaryPage(),
                 ),
               );
         } else {
@@ -370,47 +367,4 @@ final _timerNotifierProvider =
 
 final _timerStatusProvider = Provider.autoDispose<_TimerStatus>(
   (ref) => ref.watch(_timerNotifierProvider).status,
-);
-
-class _RoundDataNotifier extends StateNotifier<RoundData?> {
-  final List<Duration> _roundDurations;
-
-  Duration _previousElapsed;
-
-  int? _slowestRoundIndex;
-  int? _fastestRoundIndex;
-
-  _RoundDataNotifier()
-      : _roundDurations = [],
-        _previousElapsed = Duration.zero,
-        super(null);
-
-  void registerRound(Duration elapsed) {
-    final roundDuration = elapsed - _previousElapsed;
-
-    if (_slowestRoundIndex == null ||
-        _roundDurations[_slowestRoundIndex!] < roundDuration) {
-      _slowestRoundIndex = _roundDurations.length;
-    }
-    if (_fastestRoundIndex == null ||
-        _roundDurations[_fastestRoundIndex!] > roundDuration) {
-      _fastestRoundIndex = _roundDurations.length;
-    }
-
-    _roundDurations.add(roundDuration);
-
-    _previousElapsed = elapsed;
-
-    state = RoundData(
-      roundDurations: UnmodifiableListView(_roundDurations),
-      slowestRoundIndex: _slowestRoundIndex!,
-      fastestRoundIndex: _fastestRoundIndex!,
-      averageRoundDuration: elapsed ~/ _roundDurations.length,
-    );
-  }
-}
-
-final _roundDataNotifierProvider =
-    StateNotifierProvider.autoDispose<_RoundDataNotifier, RoundData?>(
-  (ref) => _RoundDataNotifier(),
 );
