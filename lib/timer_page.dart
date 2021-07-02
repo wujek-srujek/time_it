@@ -67,8 +67,8 @@ class _TimerPageState extends State<TimerPage> {
     return Consumer(
       builder: (context, watch, child) {
         final timerStatus = watch(
-          _timerNotifierProvider(widget.interval),
-        ).status;
+          _timerStatusProvider(widget.interval),
+        );
 
         final roundData = watch(_roundDataNotifierProvider);
 
@@ -182,8 +182,8 @@ class _TimerPageState extends State<TimerPage> {
     return Consumer(
       builder: (context, watch, child) {
         final timerStatus = watch(
-          _timerNotifierProvider(widget.interval),
-        ).status;
+          _timerStatusProvider(widget.interval),
+        );
 
         return FloatingActionButton(
           backgroundColor: timerStatus == _TimerStatus.completed
@@ -379,6 +379,11 @@ final _timerNotifierProvider = StateNotifierProvider.autoDispose
 
     return timerNotifier;
   },
+);
+
+final _timerStatusProvider =
+    Provider.autoDispose.family<_TimerStatus, Duration>(
+  (ref, interval) => ref.watch(_timerNotifierProvider(interval)).status,
 );
 
 class _RoundDataNotifier extends StateNotifier<RoundData?> {
