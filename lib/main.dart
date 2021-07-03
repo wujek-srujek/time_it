@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'interval_config_page.dart';
-import 'player.dart';
+import 'provider/player.dart';
+import 'ui/page/interval_config_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

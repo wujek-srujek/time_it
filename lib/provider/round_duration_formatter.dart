@@ -1,4 +1,4 @@
-import 'duration_x.dart';
+import '../util/duration_x.dart';
 
 String formatRoundDuration(Duration duration) {
   final unpacked = duration.unpack();

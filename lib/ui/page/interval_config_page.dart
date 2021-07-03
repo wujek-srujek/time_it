@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'interval_config.dart';
+import '../../provider/interval_config.dart';
 import 'timer_page.dart';
 
 // Design and behavior blatantly copied from the standard Android Clock app.
