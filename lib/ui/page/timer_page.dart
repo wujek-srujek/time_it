@@ -100,8 +100,7 @@ class _CountdownWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ScopedReader watch) {
-    final timerState = watch(timerNotifierProvider);
-    final timerStatus = timerState.status;
+    final timerStatus = watch(timerStatusProvider);
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -135,15 +134,21 @@ class _CountdownWidget extends ConsumerWidget {
             }
           : null,
       child: FittedBox(
-        child: Text(
-          _formatRemaining(timerState.remaining),
-          textAlign: TextAlign.center,
-          style: theme.textTheme.headline2!.copyWith(
-            color: durationColor,
-            fontFeatures: [
-              const FontFeature.tabularFigures(),
-            ],
-          ),
+        child: Consumer(
+          builder: (context, watch, _) {
+            final timerState = watch(timerNotifierProvider);
+
+            return Text(
+              _formatRemaining(timerState.remaining),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headline2!.copyWith(
+                color: durationColor,
+                fontFeatures: [
+                  const FontFeature.tabularFigures(),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
