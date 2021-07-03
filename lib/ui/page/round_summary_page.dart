@@ -12,9 +12,7 @@ class RoundSummaryPage extends ConsumerWidget {
   Widget build(BuildContext context, ScopedReader watch) {
     final roundData = watch(roundDataNotifierProvider)!;
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
+    final colorScheme = Theme.of(context).colorScheme;
     final slowestRoundTextColor = colorScheme.error;
     final fastestRoundTextColor = colorScheme.primary;
 
@@ -39,42 +37,9 @@ class RoundSummaryPage extends ConsumerWidget {
                   ),
                 ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: roundData.roundDurations.length,
-                  itemBuilder: (context, index) {
-                    final roundDuration = roundData.roundDurations[index];
-
-                    final Color? textColor;
-                    if (roundData.areAllRoundDurationsEqual) {
-                      textColor = null;
-                    } else if (index == roundData.slowestRoundIndex) {
-                      textColor = slowestRoundTextColor;
-                    } else if (index == roundData.fastestRoundIndex) {
-                      textColor = fastestRoundTextColor;
-                    } else {
-                      textColor = null;
-                    }
-                    final textStyle = theme.textTheme.headline4!.copyWith(
-                      color: textColor,
-                      fontFeatures: [
-                        const FontFeature.tabularFigures(),
-                      ],
-                    );
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: colorScheme.onSurface,
-                        child: Text('${index + 1}'),
-                      ),
-                      title: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 36),
-                        child: Text(
-                          formatRoundDuration(roundDuration),
-                          style: textStyle,
-                        ),
-                      ),
-                    );
-                  },
+                child: _RoundsList(
+                  slowestRoundTextColor: slowestRoundTextColor,
+                  fastestRoundTextColor: fastestRoundTextColor,
                 ),
               ),
             ],
@@ -143,6 +108,62 @@ class _RoundStatisticsWidget extends ConsumerWidget {
           null,
         ),
       ],
+    );
+  }
+}
+
+class _RoundsList extends ConsumerWidget {
+  const _RoundsList({
+    required this.slowestRoundTextColor,
+    required this.fastestRoundTextColor,
+  });
+
+  final Color slowestRoundTextColor;
+  final Color fastestRoundTextColor;
+
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final roundData = watch(roundDataNotifierProvider)!;
+
+    final theme = Theme.of(context);
+
+    final onSurfaceColor = theme.colorScheme.onSurface;
+    final baseTextStyle = theme.textTheme.headline4!.copyWith(
+      fontFeatures: [
+        const FontFeature.tabularFigures(),
+      ],
+    );
+
+    return ListView.builder(
+      itemCount: roundData.roundDurations.length,
+      itemBuilder: (context, index) {
+        final roundDuration = roundData.roundDurations[index];
+
+        final Color? textColor;
+        if (roundData.areAllRoundDurationsEqual) {
+          textColor = null;
+        } else if (index == roundData.slowestRoundIndex) {
+          textColor = slowestRoundTextColor;
+        } else if (index == roundData.fastestRoundIndex) {
+          textColor = fastestRoundTextColor;
+        } else {
+          textColor = null;
+        }
+
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: onSurfaceColor,
+            child: Text('${index + 1}'),
+          ),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 36),
+            child: Text(
+              formatRoundDuration(roundDuration),
+              style: baseTextStyle.copyWith(color: textColor),
+            ),
+          ),
+        );
+      },
     );
   }
 }
