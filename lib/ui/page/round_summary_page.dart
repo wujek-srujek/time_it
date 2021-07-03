@@ -9,8 +9,8 @@ class RoundSummaryPage extends ConsumerWidget {
   const RoundSummaryPage();
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final roundData = watch(roundDataNotifierProvider)!;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roundData = ref.watch(roundDataNotifierProvider)!;
 
     final colorScheme = Theme.of(context).colorScheme;
     final slowestRoundTextColor = colorScheme.error;
@@ -60,8 +60,8 @@ class _RoundStatisticsWidget extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final roundData = watch(roundDataNotifierProvider)!;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roundData = ref.watch(roundDataNotifierProvider)!;
 
     final baseTextStyle = Theme.of(context).textTheme.headline5!.copyWith(
       fontFeatures: [
@@ -122,8 +122,8 @@ class _RoundsList extends ConsumerWidget {
   final Color fastestRoundTextColor;
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final roundData = watch(roundDataNotifierProvider)!;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roundData = ref.watch(roundDataNotifierProvider)!;
 
     final theme = Theme.of(context);
 

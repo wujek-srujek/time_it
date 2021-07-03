@@ -14,8 +14,8 @@ class IntervalConfigPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Use StatelessWidget + Consumer to have 'child' support.
     return Consumer(
-      builder: (context, watch, child) {
-        final intervalConfig = watch(intervalConfigNotifierProvider);
+      builder: (context, ref, child) {
+        final intervalConfig = ref.watch(intervalConfigNotifierProvider);
 
         return Scaffold(
           body: child,
@@ -67,8 +67,8 @@ class _IntervalTextWidget extends ConsumerWidget {
   const _IntervalTextWidget();
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final intervalConfig = watch(intervalConfigNotifierProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final intervalConfig = ref.watch(intervalConfigNotifierProvider);
 
     final textColor = intervalConfig.isNotEmpty
         ? Theme.of(context).colorScheme.primary
@@ -94,19 +94,15 @@ class _IntervalTextWidget extends ConsumerWidget {
         ),
         GestureDetector(
           onLongPress: intervalConfig.isNotEmpty
-              ? () {
-                  context
-                      .read(intervalConfigNotifierProvider.notifier)
-                      .deleteAllDigits();
-                }
+              ? () => ref
+                  .read(intervalConfigNotifierProvider.notifier)
+                  .deleteAllDigits()
               : null,
           child: IconButton(
             onPressed: intervalConfig.isNotEmpty
-                ? () {
-                    context
-                        .read(intervalConfigNotifierProvider.notifier)
-                        .deleteLastDigit();
-                  }
+                ? () => ref
+                    .read(intervalConfigNotifierProvider.notifier)
+                    .deleteLastDigit()
                 : null,
             icon: const Icon(
               Icons.backspace_outlined,
@@ -156,11 +152,11 @@ class _UnitTile extends StatelessWidget {
   }
 }
 
-class _DialWidget extends StatelessWidget {
+class _DialWidget extends ConsumerWidget {
   const _DialWidget();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textStyle = Theme.of(context).textTheme.headline3!.copyWith(
       fontFeatures: [
         const FontFeature.tabularFigures(),
@@ -177,7 +173,7 @@ class _DialWidget extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 8),
             child: TextButton(
-              onPressed: () => context
+              onPressed: () => ref
                   .read(intervalConfigNotifierProvider.notifier)
                   .addDigit(digit),
               style: TextButton.styleFrom(

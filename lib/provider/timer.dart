@@ -152,6 +152,18 @@ final timerNotifierProvider =
   },
 );
 
+/// Use this provider if only [TimerState.status] changes are of interest.
+///
+/// [timerNotifierProvider] provides the whole state which includes
+/// [TimerState.remaining], meaning its updates are very frequent. Using
+/// [timerStatusProvider] will result in fewer dependent `Provider` and
+/// `Widget` rebuilds.
+///
+/// While it is possible to use [timerNotifierProvider] together with
+/// [ProviderBase.select], requesting `status` only happens to be used pretty
+/// often so it is implemented here to avoid duplication.
 final timerStatusProvider = Provider.autoDispose<TimerStatus>(
-  (ref) => ref.watch(timerNotifierProvider).status,
+  (ref) => ref.watch(
+    timerNotifierProvider.select((timerState) => timerState.status),
+  ),
 );

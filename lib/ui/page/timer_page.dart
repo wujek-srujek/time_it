@@ -40,13 +40,13 @@ class _RoundsWidget extends ConsumerWidget {
   const _RoundsWidget();
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final timerStatus = watch(timerStatusProvider);
-    final roundData = watch(roundDataNotifierProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final timerStatus = ref.watch(timerStatusProvider);
+    final roundData = ref.watch(roundDataNotifierProvider);
 
     final void Function()? onTap;
     if (timerStatus != TimerStatus.completed) {
-      onTap = () => context
+      onTap = () => ref
           .read(
             roundDataNotifierProvider.notifier,
           )
@@ -99,8 +99,8 @@ class _CountdownWidget extends ConsumerWidget {
   const _CountdownWidget();
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final timerStatus = watch(timerStatusProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final timerStatus = ref.watch(timerStatusProvider);
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -122,9 +122,7 @@ class _CountdownWidget extends ConsumerWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: !timerStatus.isFinished
           ? () {
-              final timerNotifier = context.read(
-                timerNotifierProvider.notifier,
-              );
+              final timerNotifier = ref.read(timerNotifierProvider.notifier);
 
               if (timerStatus == TimerStatus.running) {
                 timerNotifier.pause();
@@ -136,7 +134,7 @@ class _CountdownWidget extends ConsumerWidget {
       child: FittedBox(
         child: Consumer(
           builder: (context, watch, _) {
-            final timerState = watch(timerNotifierProvider);
+            final timerState = ref.watch(timerNotifierProvider);
 
             return Text(
               _formatRemaining(timerState.remaining),
@@ -159,8 +157,8 @@ class _BackButton extends ConsumerWidget {
   const _BackButton();
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
-    final timerStatus = watch(timerStatusProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final timerStatus = ref.watch(timerStatusProvider);
 
     return FloatingActionButton(
       backgroundColor: timerStatus == TimerStatus.completed
