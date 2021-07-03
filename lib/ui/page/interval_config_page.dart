@@ -48,17 +48,11 @@ class IntervalConfigPage extends StatelessWidget {
               const Divider(
                 thickness: 2,
               ),
-              Expanded(
+              const Expanded(
                 flex: 3,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: _DialWidget(
-                    onDigitPressed: (digit) {
-                      context
-                          .read(intervalConfigNotifierProvider.notifier)
-                          .addDigit(digit);
-                    },
-                  ),
+                  padding: EdgeInsets.only(top: 24),
+                  child: _DialWidget(),
                 ),
               ),
             ],
@@ -163,9 +157,7 @@ class _UnitTile extends StatelessWidget {
 }
 
 class _DialWidget extends StatelessWidget {
-  final void Function(int digit) onDigitPressed;
-
-  const _DialWidget({required this.onDigitPressed});
+  const _DialWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +177,9 @@ class _DialWidget extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 8),
             child: TextButton(
-              onPressed: () => onDigitPressed(digit),
+              onPressed: () => context
+                  .read(intervalConfigNotifierProvider.notifier)
+                  .addDigit(digit),
               style: TextButton.styleFrom(
                 shape: const CircleBorder(),
               ),
