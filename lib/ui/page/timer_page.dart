@@ -19,156 +19,157 @@ class TimerPage extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+            children: const [
               Expanded(
-                child: _roundsWidget(),
+                child: _RoundsWidget(),
               ),
               Expanded(
-                child: _countdownWidget(),
+                child: _CountdownWidget(),
               ),
             ],
           ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-      floatingActionButton: _backButton(),
+      floatingActionButton: const _BackButton(),
     );
   }
+}
 
-  Widget _roundsWidget() {
-    return Consumer(
-      builder: (context, watch, child) {
-        final timerStatus = watch(timerStatusProvider);
-        final roundData = watch(roundDataNotifierProvider);
+class _RoundsWidget extends ConsumerWidget {
+  const _RoundsWidget();
 
-        final void Function()? onTap;
-        if (timerStatus != TimerStatus.completed) {
-          onTap = () => context
-              .read(
-                roundDataNotifierProvider.notifier,
-              )
-              .registerRound();
-        } else if (roundData != null) {
-          onTap = () => Navigator.of(context).pushReplacement(
-                MaterialPageRoute<void>(
-                  builder: (context) => const RoundSummaryPage(),
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final timerStatus = watch(timerStatusProvider);
+    final roundData = watch(roundDataNotifierProvider);
+
+    final void Function()? onTap;
+    if (timerStatus != TimerStatus.completed) {
+      onTap = () => context
+          .read(
+            roundDataNotifierProvider.notifier,
+          )
+          .registerRound();
+    } else if (roundData != null) {
+      onTap = () => Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(
+              builder: (context) => const RoundSummaryPage(),
+            ),
+          );
+    } else {
+      onTap = null;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: FittedBox(
+              child: Text(
+                roundData != null
+                    ? formatRoundDuration(roundData.lastRoundDuration)
+                    : '--',
+                style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                  fontFeatures: [
+                    const FontFeature.tabularFigures(),
+                  ],
                 ),
-              );
-        } else {
-          onTap = null;
-        }
-
-        return InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: FittedBox(
-                  child: Text(
-                    roundData != null
-                        ? formatRoundDuration(roundData.lastRoundDuration)
-                        : '--',
-                    style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                      fontFeatures: [
-                        const FontFeature.tabularFigures(),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: FittedBox(
-                  child: Text(
-                    roundData != null
-                        ? '${roundData.roundDurations.length}'
-                        : '0',
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _countdownWidget() {
-    return Consumer(
-      builder: (context, watch, child) {
-        final timerState = watch(timerNotifierProvider);
-        final timerStatus = timerState.status;
-
-        final theme = Theme.of(context);
-        final colorScheme = theme.colorScheme;
-
-        final Color durationColor;
-        switch (timerStatus) {
-          case TimerStatus.running:
-            durationColor = colorScheme.primary;
-            break;
-          case TimerStatus.paused:
-            durationColor = colorScheme.error;
-            break;
-          case TimerStatus.completed:
-          case TimerStatus.stopped:
-            durationColor = colorScheme.secondary;
-        }
-
-        return InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: !timerStatus.isFinished
-              ? () {
-                  final timerNotifier = context.read(
-                    timerNotifierProvider.notifier,
-                  );
-
-                  if (timerStatus == TimerStatus.running) {
-                    timerNotifier.pause();
-                  } else {
-                    timerNotifier.resume();
-                  }
-                }
-              : null,
-          child: FittedBox(
-            child: Text(
-              _formatRemaining(timerState.remaining),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.headline2!.copyWith(
-                color: durationColor,
-                fontFeatures: [
-                  const FontFeature.tabularFigures(),
-                ],
               ),
             ),
           ),
-        );
-      },
+          Expanded(
+            flex: 3,
+            child: FittedBox(
+              child: Text(
+                roundData != null ? '${roundData.roundDurations.length}' : '0',
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Widget _backButton() {
-    return Consumer(
-      builder: (context, watch, child) {
-        final timerStatus = watch(timerStatusProvider);
+class _CountdownWidget extends ConsumerWidget {
+  const _CountdownWidget();
 
-        return FloatingActionButton(
-          backgroundColor: timerStatus == TimerStatus.completed
-              ? null
-              : Theme.of(context).colorScheme.error,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          mini: true,
-          child: Icon(
-            timerStatus.isFinished
-                ? Icons.arrow_back_ios_rounded
-                : Icons.stop_rounded,
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final timerState = watch(timerNotifierProvider);
+    final timerStatus = timerState.status;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final Color durationColor;
+    switch (timerStatus) {
+      case TimerStatus.running:
+        durationColor = colorScheme.primary;
+        break;
+      case TimerStatus.paused:
+        durationColor = colorScheme.error;
+        break;
+      case TimerStatus.completed:
+      case TimerStatus.stopped:
+        durationColor = colorScheme.secondary;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: !timerStatus.isFinished
+          ? () {
+              final timerNotifier = context.read(
+                timerNotifierProvider.notifier,
+              );
+
+              if (timerStatus == TimerStatus.running) {
+                timerNotifier.pause();
+              } else {
+                timerNotifier.resume();
+              }
+            }
+          : null,
+      child: FittedBox(
+        child: Text(
+          _formatRemaining(timerState.remaining),
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headline2!.copyWith(
+            color: durationColor,
+            fontFeatures: [
+              const FontFeature.tabularFigures(),
+            ],
           ),
-        );
+        ),
+      ),
+    );
+  }
+}
+
+class _BackButton extends ConsumerWidget {
+  const _BackButton();
+
+  @override
+  Widget build(BuildContext context, ScopedReader watch) {
+    final timerStatus = watch(timerStatusProvider);
+
+    return FloatingActionButton(
+      backgroundColor: timerStatus == TimerStatus.completed
+          ? null
+          : Theme.of(context).colorScheme.error,
+      onPressed: () {
+        Navigator.of(context).pop();
       },
+      mini: true,
+      child: Icon(
+        timerStatus.isFinished
+            ? Icons.arrow_back_ios_rounded
+            : Icons.stop_rounded,
+      ),
     );
   }
 }
