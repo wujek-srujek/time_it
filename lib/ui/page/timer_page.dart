@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/round_data.dart';
-import '../../provider/round_duration_formatter.dart';
 import '../../provider/timer.dart';
 import '../../util/duration_x.dart';
 import 'round_summary_page.dart';
