@@ -44,19 +44,11 @@ class TimerPage extends StatelessWidget {
 
         final void Function()? onTap;
         if (timerStatus != TimerStatus.completed) {
-          onTap = () {
-            final elapsed = context
-                .read(
-                  timerNotifierProvider.notifier,
-                )
-                .elapsed;
-
-            context
-                .read(
-                  roundDataNotifierProvider.notifier,
-                )
-                .registerRound(elapsed);
-          };
+          onTap = () => context
+              .read(
+                roundDataNotifierProvider.notifier,
+              )
+              .registerRound();
         } else if (roundData != null) {
           onTap = () => Navigator.of(context).pushReplacement(
                 MaterialPageRoute<void>(

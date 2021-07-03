@@ -3,6 +3,8 @@ import 'dart:collection';
 import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
+import 'timer.dart';
+
 @immutable
 class RoundData {
   final List<Duration> roundDurations;
@@ -31,6 +33,8 @@ class RoundData {
 }
 
 class RoundDataNotifier extends StateNotifier<RoundData?> {
+  final Duration Function() _elapsed;
+
   final List<Duration> _roundDurations;
 
   Duration _previousElapsed;
@@ -38,12 +42,13 @@ class RoundDataNotifier extends StateNotifier<RoundData?> {
   int? _slowestRoundIndex;
   int? _fastestRoundIndex;
 
-  RoundDataNotifier()
+  RoundDataNotifier(this._elapsed)
       : _roundDurations = [],
         _previousElapsed = Duration.zero,
         super(null);
 
-  void registerRound(Duration elapsed) {
+  void registerRound() {
+    final elapsed = _elapsed();
     final roundDuration = elapsed - _previousElapsed;
 
     if (_slowestRoundIndex == null ||
@@ -70,5 +75,9 @@ class RoundDataNotifier extends StateNotifier<RoundData?> {
 
 final roundDataNotifierProvider =
     StateNotifierProvider.autoDispose<RoundDataNotifier, RoundData?>(
-  (ref) => RoundDataNotifier(),
+  (ref) {
+    final timerNotifier = ref.watch(timerNotifierProvider.notifier);
+
+    return RoundDataNotifier(() => timerNotifier.elapsed);
+  },
 );
