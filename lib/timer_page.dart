@@ -14,29 +14,8 @@ import 'round_data.dart';
 import 'round_duration_formatter.dart';
 import 'round_summary_page.dart';
 
-class TimerPage extends StatefulWidget {
+class TimerPage extends StatelessWidget {
   const TimerPage();
-
-  @override
-  _TimerPageState createState() => _TimerPageState();
-}
-
-class _TimerPageState extends State<TimerPage> {
-  late final _TimerNotifier _timerNotifier;
-  late final _RoundDataNotifier _roundDataNotifier;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _timerNotifier = context.read(
-      _timerNotifierProvider.notifier,
-    )..start();
-
-    _roundDataNotifier = context.read(
-      _roundDataNotifierProvider.notifier,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +49,19 @@ class _TimerPageState extends State<TimerPage> {
 
         final void Function()? onTap;
         if (timerStatus != _TimerStatus.completed) {
-          onTap = () => _roundDataNotifier.registerRound(
-                _timerNotifier.elapsed,
-              );
+          onTap = () {
+            final elapsed = context
+                .read(
+                  _timerNotifierProvider.notifier,
+                )
+                .elapsed;
+
+            context
+                .read(
+                  _roundDataNotifierProvider.notifier,
+                )
+                .registerRound(elapsed);
+          };
         } else if (roundData != null) {
           onTap = () => Navigator.of(context).pushReplacement(
                 MaterialPageRoute<void>(
@@ -148,10 +137,14 @@ class _TimerPageState extends State<TimerPage> {
           borderRadius: BorderRadius.circular(16),
           onTap: !timerStatus.isFinished
               ? () {
+                  final timerNotifier = context.read(
+                    _timerNotifierProvider.notifier,
+                  );
+
                   if (timerStatus == _TimerStatus.running) {
-                    _timerNotifier.pause();
+                    timerNotifier.pause();
                   } else {
-                    _timerNotifier.resume();
+                    timerNotifier.resume();
                   }
                 }
               : null,
@@ -371,7 +364,7 @@ final _timerNotifierProvider =
     );
     ref.onDispose(timerNotifier.stop);
 
-    return timerNotifier;
+    return timerNotifier..start();
   },
 );
 
