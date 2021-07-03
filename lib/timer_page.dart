@@ -8,15 +8,14 @@ import 'package:quiver/async.dart';
 import 'package:wakelock/wakelock.dart';
 
 import 'duration_x.dart';
+import 'interval_config.dart';
 import 'player.dart';
 import 'round_data.dart';
 import 'round_duration_formatter.dart';
 import 'round_summary_page.dart';
 
 class TimerPage extends StatefulWidget {
-  final Duration interval;
-
-  const TimerPage({required this.interval});
+  const TimerPage();
 
   @override
   _TimerPageState createState() => _TimerPageState();
@@ -31,7 +30,7 @@ class _TimerPageState extends State<TimerPage> {
     super.initState();
 
     _timerNotifier = context.read(
-      _timerNotifierProvider(widget.interval).notifier,
+      _timerNotifierProvider.notifier,
     )..start();
 
     _roundDataNotifier = context.read(
@@ -66,10 +65,7 @@ class _TimerPageState extends State<TimerPage> {
   Widget _roundsWidget() {
     return Consumer(
       builder: (context, watch, child) {
-        final timerStatus = watch(
-          _timerStatusProvider(widget.interval),
-        );
-
+        final timerStatus = watch(_timerStatusProvider);
         final roundData = watch(_roundDataNotifierProvider);
 
         final void Function()? onTap;
@@ -129,9 +125,7 @@ class _TimerPageState extends State<TimerPage> {
   Widget _countdownWidget() {
     return Consumer(
       builder: (context, watch, child) {
-        final timerState = watch(
-          _timerNotifierProvider(widget.interval),
-        );
+        final timerState = watch(_timerNotifierProvider);
         final timerStatus = timerState.status;
 
         final theme = Theme.of(context);
@@ -181,9 +175,7 @@ class _TimerPageState extends State<TimerPage> {
   Widget _backButton() {
     return Consumer(
       builder: (context, watch, child) {
-        final timerStatus = watch(
-          _timerStatusProvider(widget.interval),
-        );
+        final timerStatus = watch(_timerStatusProvider);
 
         return FloatingActionButton(
           backgroundColor: timerStatus == _TimerStatus.completed
@@ -367,10 +359,12 @@ class _TimerNotifier extends StateNotifier<_TimerState> {
   bool get _isRunning => _timer?.isRunning ?? false;
 }
 
-final _timerNotifierProvider = StateNotifierProvider.autoDispose
-    .family<_TimerNotifier, _TimerState, Duration>(
-  (ref, interval) {
+final _timerNotifierProvider =
+    StateNotifierProvider.autoDispose<_TimerNotifier, _TimerState>(
+  (ref) {
+    final interval = ref.watch(intervalConfigNotifierProvider).asDuration();
     final player = ref.watch(playerProvider);
+
     final timerNotifier = _TimerNotifier(
       interval,
       player.playTimerAlarm,
@@ -381,9 +375,8 @@ final _timerNotifierProvider = StateNotifierProvider.autoDispose
   },
 );
 
-final _timerStatusProvider =
-    Provider.autoDispose.family<_TimerStatus, Duration>(
-  (ref, interval) => ref.watch(_timerNotifierProvider(interval)).status,
+final _timerStatusProvider = Provider.autoDispose<_TimerStatus>(
+  (ref) => ref.watch(_timerNotifierProvider).status,
 );
 
 class _RoundDataNotifier extends StateNotifier<RoundData?> {

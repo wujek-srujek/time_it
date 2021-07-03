@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'interval_config.dart';
 import 'timer_page.dart';
 
 // Design and behavior blatantly copied from the standard Android Clock app.
@@ -14,7 +15,7 @@ class IntervalConfigPage extends StatelessWidget {
     // Use StatelessWidget + Consumer to have 'child' support.
     return Consumer(
       builder: (context, watch, child) {
-        final intervalConfig = watch(_intervalConfigNotifierProvider);
+        final intervalConfig = watch(intervalConfigNotifierProvider);
 
         return Scaffold(
           body: child,
@@ -23,11 +24,7 @@ class IntervalConfigPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (context) {
-                          return TimerPage(
-                            interval: intervalConfig.asDuration(),
-                          );
-                        },
+                        builder: (context) => const TimerPage(),
                       ),
                     );
                   },
@@ -58,7 +55,7 @@ class IntervalConfigPage extends StatelessWidget {
                   child: _DialWidget(
                     onDigitPressed: (digit) {
                       context
-                          .read(_intervalConfigNotifierProvider.notifier)
+                          .read(intervalConfigNotifierProvider.notifier)
                           .addDigit(digit);
                     },
                   ),
@@ -77,7 +74,8 @@ class _IntervalTextWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ScopedReader watch) {
-    final intervalConfig = watch(_intervalConfigNotifierProvider);
+    final intervalConfig = watch(intervalConfigNotifierProvider);
+
     final textColor = intervalConfig.isNotEmpty
         ? Theme.of(context).colorScheme.primary
         : null;
@@ -104,7 +102,7 @@ class _IntervalTextWidget extends ConsumerWidget {
           onLongPress: intervalConfig.isNotEmpty
               ? () {
                   context
-                      .read(_intervalConfigNotifierProvider.notifier)
+                      .read(intervalConfigNotifierProvider.notifier)
                       .deleteAllDigits();
                 }
               : null,
@@ -112,7 +110,7 @@ class _IntervalTextWidget extends ConsumerWidget {
             onPressed: intervalConfig.isNotEmpty
                 ? () {
                     context
-                        .read(_intervalConfigNotifierProvider.notifier)
+                        .read(intervalConfigNotifierProvider.notifier)
                         .deleteLastDigit();
                   }
                 : null,
@@ -211,100 +209,3 @@ class _DialWidget extends StatelessWidget {
     );
   }
 }
-
-@immutable
-class _IntervalConfig {
-  static const _IntervalConfig zero = _IntervalConfig();
-
-  final int hours;
-  final int minutes;
-  final int seconds;
-
-  const _IntervalConfig({
-    this.hours = 0,
-    this.minutes = 0,
-    this.seconds = 0,
-  })  : assert(hours >= 0),
-        assert(hours <= 99),
-        assert(minutes >= 0),
-        assert(minutes <= 99),
-        assert(seconds >= 0),
-        assert(seconds <= 99);
-
-  Duration asDuration() => Duration(
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-      );
-
-  bool get isNotEmpty => asDuration() > Duration.zero;
-}
-
-class _IntervalConfigNotifier extends StateNotifier<_IntervalConfig> {
-  final List<int> input;
-  int digitCount;
-
-  _IntervalConfigNotifier()
-      : digitCount = 0,
-        input = List.filled(6, 0),
-        super(_IntervalConfig.zero);
-
-  void addDigit(int digit) {
-    if (digitCount < input.length) {
-      _update(() {
-        // Traverse the input and move the digits by one spot to the left to
-        // make space for the new one. Only relevant parts of the input are
-        // considered.
-        for (var i = input.length - digitCount; i < input.length; ++i) {
-          input[i - 1] = input[i];
-        }
-        input[input.length - 1] = digit;
-
-        ++digitCount;
-      });
-    }
-  }
-
-  void deleteLastDigit() {
-    if (digitCount > 0) {
-      _update(() {
-        // Traverse the input in reverse and move the digits by one spot to the
-        // right to delete the last one. Only relevant parts of the input are
-        // considered.
-        for (var i = input.length - 2; i >= input.length - digitCount; --i) {
-          input[i + 1] = input[i];
-        }
-        input[input.length - digitCount] = 0;
-
-        --digitCount;
-      });
-    }
-  }
-
-  void deleteAllDigits() {
-    if (digitCount > 0) {
-      _update(() {
-        for (var i = input.length - digitCount; i < input.length; ++i) {
-          input[i] = 0;
-        }
-
-        digitCount = 0;
-      });
-    }
-  }
-
-  void _update(void Function() operations) {
-    operations();
-
-    state = _IntervalConfig(
-      hours: input[0] * 10 + input[1],
-      minutes: input[2] * 10 + input[3],
-      seconds: input[4] * 10 + input[5],
-    );
-  }
-}
-
-final _intervalConfigNotifierProvider =
-    StateNotifierProvider<_IntervalConfigNotifier, _IntervalConfig>(
-  (ref) => _IntervalConfigNotifier(),
-);
