@@ -26,13 +26,41 @@ extension TimerStatusX on TimerStatus {
 
 @immutable
 class TimerState {
-  final Duration remaining;
+  final Duration interval;
+
+  /// Elapsed time.
+  ///
+  /// Due to how the underlying platform timer works it can be slightly bigger
+  /// than [interval].
+  final Duration elapsed;
   final TimerStatus status;
 
-  const TimerState(
-    this.remaining,
-    this.status,
-  );
+  const TimerState._({
+    required this.interval,
+    required this.elapsed,
+    required this.status,
+  });
+
+  const TimerState.initial(Duration interval)
+      : this._(
+          interval: interval,
+          elapsed: Duration.zero,
+          status: TimerStatus.paused,
+        );
+
+  /// Remaining time.
+  ///
+  /// It is computed by subtracting [elapsed] from [interval]. Due to this, it
+  /// can be negative.
+  Duration get remaining => interval - elapsed;
+
+  TimerState _elapse(Duration duration, TimerStatus newStatus) {
+    return TimerState._(
+      interval: interval,
+      elapsed: elapsed + duration,
+      status: newStatus,
+    );
+  }
 }
 
 // Wakelock integration: the OS must not lock the screen as long as there is a
@@ -42,25 +70,30 @@ class TimerState {
 // - The user leaves this page and there is a running timer. (If there is no
 //   running timer, the previous scenario will have taken care of the wakelock.)
 class TimerNotifier extends StateNotifier<TimerState> {
-  final Duration _interval;
+  static const _defaultRefreshInterval = Duration(milliseconds: 100);
+
   final void Function() _onComplete;
 
   CountdownTimer? _timer;
   StreamSubscription<CountdownTimer>? _timerSubscription;
+
   // When set, means the timer has been interrupted preemptively. When unset,
   // the timer is still running of has completed naturally.
   TimerStatus? _preemptiveInterruptionStatus;
 
-  // When a timer is paused and resumed, in reality a new timer is created and
-  // started, so the 'elapsed' of the previous one would be lost. To fix this,
-  // it is updated here and taken into account.
-  Duration _elapsedSinceBeginning;
+  // Used to calculate elapsed time between ticks. Calling
+  // [CountdownTimer.remaining] immediately after [CountdownTimer.elapsed] would
+  // still introduce a tiny discrepancy (`elapsed` + `remaining` < `interval` by
+  // a tiny bit) due to time flowing between these two calls. Using this field
+  // we calculate the increment since the last tick and use it to consistently
+  // calculate [TimerState.elapsed] and [TimerState.remaining].
+  Duration _previousElapsed;
 
-  TimerNotifier(this._interval, this._onComplete)
-      : _elapsedSinceBeginning = Duration.zero,
-        super(TimerState(_interval, TimerStatus.paused));
+  TimerNotifier(Duration interval, this._onComplete)
+      : _previousElapsed = Duration.zero,
+        super(TimerState.initial(interval));
 
-  void start() => _start(_interval);
+  void start() => _start(state.interval);
 
   void stop() => _stop(true);
 
@@ -70,10 +103,20 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
   void resume() => _start(state.remaining);
 
-  Duration get elapsed {
+  /// Returns the current accurate elapsed time.
+  ///
+  /// [state] updates happen at 'ticks' at more or less fixed intervals and
+  /// can't report times in between. This is often good enough and should be
+  /// used for most cases, like UI updates with elapsed information; sometimes,
+  /// however, it is necessary to get the accurate elapsed time even between
+  /// 'ticks', which this method allows.
+  ///
+  /// Calling this method doesn't influence the state in any way.
+  Duration accurateElapsed() {
     final currentElapsed = _timer?.elapsed ?? Duration.zero;
+    final elapsedSinceLastUpdate = currentElapsed - _previousElapsed;
 
-    return _elapsedSinceBeginning + currentElapsed;
+    return state.elapsed + elapsedSinceLastUpdate;
   }
 
   void _start(Duration remaining) {
@@ -81,15 +124,24 @@ class TimerNotifier extends StateNotifier<TimerState> {
       return;
     }
 
-    _timer = CountdownTimer(
-      remaining,
-      const Duration(milliseconds: 100),
-    );
+    if (remaining < Duration.zero) {
+      // Pausing and resuming like mad can cause 'remaining' to be negative,
+      // so fix this.
+      remaining = Duration.zero;
+    }
+
+    // The refresh interval will equal 'remaining' if it's low enough.
+    final refreshInterval = remaining > _defaultRefreshInterval
+        ? _defaultRefreshInterval
+        : remaining;
+    _timer = CountdownTimer(remaining, refreshInterval);
+
+    _updateState(TimerStatus.running);
+
     _timerSubscription = _timer!.listen(
       _tick,
       onDone: _done,
     );
-    state = TimerState(state.remaining, TimerStatus.running);
 
     Wakelock.enable();
   }
@@ -103,34 +155,37 @@ class TimerNotifier extends StateNotifier<TimerState> {
         isStopped ? TimerStatus.stopped : TimerStatus.paused;
 
     // Cancelling will cause the subscription's 'onDone' handler to be invoked.
-    final timer = _timer!..cancel();
-    _elapsedSinceBeginning += timer.elapsed;
+    _timer!.cancel();
   }
 
-  void _tick(CountdownTimer timer) {
-    state = TimerState(
-      timer.remaining < Duration.zero ? Duration.zero : timer.remaining,
-      TimerStatus.running,
-    );
+  void _tick(CountdownTimer _) {
+    _updateState(TimerStatus.running);
   }
 
   void _done() {
-    Wakelock.disable();
+    _updateState(_preemptiveInterruptionStatus ?? TimerStatus.completed);
 
     _timerSubscription?.cancel();
-    _timerSubscription = null;
-    _timer = null;
 
-    state = TimerState(
-      state.remaining,
-      _preemptiveInterruptionStatus ?? TimerStatus.completed,
-    );
+    _timer = null;
+    _timerSubscription = null;
     _preemptiveInterruptionStatus = null;
 
+    _previousElapsed = Duration.zero;
+
     if (state.status == TimerStatus.completed) {
-      _elapsedSinceBeginning = _interval;
       _onComplete();
     }
+
+    Wakelock.disable();
+  }
+
+  void _updateState(TimerStatus status) {
+    final currentElapsed = _timer!.elapsed;
+    final elapsedSinceLastUpdate = currentElapsed - _previousElapsed;
+
+    state = state._elapse(elapsedSinceLastUpdate, status);
+    _previousElapsed = currentElapsed;
   }
 
   bool get _isRunning => _timer?.isRunning ?? false;
