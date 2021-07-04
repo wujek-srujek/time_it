@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:quiver/async.dart';
 import 'package:riverpod/riverpod.dart';
-import 'package:wakelock/wakelock.dart';
 
 import 'interval_config.dart';
+import 'keep_awake.dart';
 import 'player.dart';
 
 enum TimerStatus {
@@ -72,7 +72,7 @@ class TimerState {
 class TimerNotifier extends StateNotifier<TimerState> {
   static const _defaultRefreshInterval = Duration(milliseconds: 100);
 
-  final void Function() _onComplete;
+  final _TimerDelegate _delegate;
 
   CountdownTimer? _timer;
   StreamSubscription<CountdownTimer>? _timerSubscription;
@@ -89,7 +89,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
   // calculate [TimerState.elapsed] and [TimerState.remaining].
   Duration _previousElapsed;
 
-  TimerNotifier(Duration interval, this._onComplete)
+  TimerNotifier(Duration interval, this._delegate)
       : _previousElapsed = Duration.zero,
         super(TimerState.initial(interval));
 
@@ -143,7 +143,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
       onDone: _done,
     );
 
-    Wakelock.enable();
+    _delegate.onStart();
   }
 
   void _stop(bool isStopped) {
@@ -173,11 +173,10 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
     _previousElapsed = Duration.zero;
 
+    _delegate.onStop();
     if (state.status == TimerStatus.completed) {
-      _onComplete();
+      _delegate.onComplete();
     }
-
-    Wakelock.disable();
   }
 
   void _updateState(TimerStatus status) {
@@ -195,11 +194,16 @@ final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
     final interval = ref.watch(intervalConfigNotifierProvider).asDuration();
+    final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 
     final timerNotifier = TimerNotifier(
       interval,
-      player.playTimerAlarm,
+      _TimerDelegate(
+        onStart: keepAwake.enable,
+        onStop: keepAwake.disable,
+        onComplete: player.playTimerAlarm,
+      ),
     );
     ref.onDispose(timerNotifier.stop);
 
@@ -222,3 +226,17 @@ final timerStatusProvider = Provider.autoDispose<TimerStatus>(
     timerNotifierProvider.select((timerState) => timerState.status),
   ),
 );
+
+// Doesn't differentiate between 'start' vs 'resume' and 'stop' vs 'pause' as it
+// isn't needed.
+class _TimerDelegate {
+  final void Function() onStart;
+  final void Function() onStop;
+  final void Function() onComplete;
+
+  _TimerDelegate({
+    required this.onStart,
+    required this.onStop,
+    required this.onComplete,
+  });
+}
