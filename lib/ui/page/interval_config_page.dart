@@ -18,6 +18,9 @@ class IntervalConfigPage extends StatelessWidget {
         final intervalConfig = ref.watch(intervalConfigNotifierProvider);
 
         return Scaffold(
+          appBar: AppBar(
+            title: const Text('Define interval'),
+          ),
           body: child,
           floatingActionButton: intervalConfig.isNotEmpty
               ? FloatingActionButton(

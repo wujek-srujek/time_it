@@ -94,6 +94,6 @@ class IntervalConfigNotifier extends StateNotifier<IntervalConfig> {
 }
 
 final intervalConfigNotifierProvider =
-    StateNotifierProvider<IntervalConfigNotifier, IntervalConfig>(
+    StateNotifierProvider.autoDispose<IntervalConfigNotifier, IntervalConfig>(
   (ref) => IntervalConfigNotifier(),
 );
