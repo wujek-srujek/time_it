@@ -1,27 +1,17 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:quiver/async.dart';
 import 'package:riverpod/riverpod.dart';
 
+import '../util/ticker.dart';
 import 'interval_config.dart';
 import 'keep_awake.dart';
 import 'player.dart';
 
 enum TimerStatus {
   running,
-  paused,
-
-  /// Stopped preemptively by the user.
   stopped,
-
-  /// Stopped naturally, i.e. it run to the end.
   completed,
-}
-
-extension TimerStatusX on TimerStatus {
-  bool get isFinished =>
-      this == TimerStatus.stopped || this == TimerStatus.completed;
 }
 
 @immutable
@@ -45,7 +35,7 @@ class TimerState {
       : this._(
           interval: interval,
           elapsed: Duration.zero,
-          status: TimerStatus.paused,
+          status: TimerStatus.stopped,
         );
 
   /// Remaining time.
@@ -54,54 +44,84 @@ class TimerState {
   /// can be negative.
   Duration get remaining => interval - elapsed;
 
-  TimerState _elapse(Duration duration, TimerStatus newStatus) {
+  TimerState _update(Duration elapsed, TimerStatus status) {
     return TimerState._(
       interval: interval,
-      elapsed: elapsed + duration,
-      status: newStatus,
+      elapsed: elapsed,
+      status: status,
     );
   }
 }
 
+class _TimerDelegate {
+  final void Function() onStart;
+  final void Function() onStop;
+  final void Function() onComplete;
+
+  _TimerDelegate({
+    required this.onStart,
+    required this.onStop,
+    required this.onComplete,
+  });
+}
+
 // Wakelock integration: the OS must not lock the screen as long as there is a
 // running timer. The wakelock is again disabled in the following scenarios:
-// - The running timer finishes, even if the user stays on this page (all
-//   activity is done so there is no point in preventing screen lock).
-// - The user leaves this page and there is a running timer. (If there is no
-//   running timer, the previous scenario will have taken care of the wakelock.)
+// - The running timer completes, even if the user stays on the page - the
+//   workout is done.
+// - The timer is stopped, even if the user stays on the page - the workout is
+//   temporarily interrupted.
+// - The user leaves this page in the middle of a workout - the workout is
+//   cancelled.
+// In all of the above cases, the user has terminated the workout in some way
+// and can use the app normally to prevent locking.
 class TimerNotifier extends StateNotifier<TimerState> {
   static const _defaultRefreshInterval = Duration(milliseconds: 100);
 
   final _TimerDelegate _delegate;
 
-  CountdownTimer? _timer;
-  StreamSubscription<CountdownTimer>? _timerSubscription;
-
-  // When set, means the timer has been interrupted preemptively. When unset,
-  // the timer is still running of has completed naturally.
-  TimerStatus? _preemptiveInterruptionStatus;
-
-  // Used to calculate elapsed time between ticks. Calling
-  // [CountdownTimer.remaining] immediately after [CountdownTimer.elapsed] would
-  // still introduce a tiny discrepancy (`elapsed` + `remaining` < `interval` by
-  // a tiny bit) due to time flowing between these two calls. Using this field
-  // we calculate the increment since the last tick and use it to consistently
-  // calculate [TimerState.elapsed] and [TimerState.remaining].
-  Duration _previousElapsed;
+  final Ticker _ticker;
+  late final StreamSubscription<Ticker> _tickerSubscription;
 
   TimerNotifier(Duration interval, this._delegate)
-      : _previousElapsed = Duration.zero,
-        super(TimerState.initial(interval));
+      : _ticker = Ticker(limit: interval),
+        super(TimerState.initial(interval)) {
+    _tickerSubscription = _ticker.stream.listen(
+      _tick,
+      onDone: _done,
+    );
+  }
 
-  void start() => _start(state.interval);
+  void start() {
+    _ticker.start(refreshInterval: _chooseRefreshInterval(_ticker.remaining));
+    _updateState(TimerStatus.running);
 
-  void stop() => _stop(true);
+    _delegate.onStart();
+  }
 
-  // There is no concept of 'pausing' in CountdownTimer. We just stop it here,
-  // and resume will start a new one with an interval being the current state.
-  void pause() => _stop(false);
+  void stop() {
+    _ticker.stop();
+    _updateState(TimerStatus.stopped);
 
-  void resume() => _start(state.remaining);
+    _delegate.onStop();
+  }
+
+  @override
+  void dispose() {
+    _tickerSubscription.cancel();
+
+    if (!_ticker.isDisposed) {
+      final wasRunning = _ticker.isRunning;
+
+      _ticker.dispose();
+
+      if (wasRunning) {
+        _delegate.onStop();
+      }
+    }
+
+    super.dispose();
+  }
 
   /// Returns the current accurate elapsed time.
   ///
@@ -112,82 +132,37 @@ class TimerNotifier extends StateNotifier<TimerState> {
   /// 'ticks', which this method allows.
   ///
   /// Calling this method doesn't influence the state in any way.
-  Duration accurateElapsed() {
-    final currentElapsed = _timer?.elapsed ?? Duration.zero;
-    final elapsedSinceLastUpdate = currentElapsed - _previousElapsed;
+  Duration get accurateElapsed => _ticker.elapsed;
 
-    return state.elapsed + elapsedSinceLastUpdate;
-  }
-
-  void _start(Duration remaining) {
-    if (_isRunning) {
-      return;
-    }
-
-    if (remaining < Duration.zero) {
-      // Pausing and resuming like mad can cause 'remaining' to be negative,
-      // so fix this.
-      remaining = Duration.zero;
-    }
-
-    // The refresh interval will equal 'remaining' if it's low enough.
-    final refreshInterval = remaining > _defaultRefreshInterval
-        ? _defaultRefreshInterval
-        : remaining;
-    _timer = CountdownTimer(remaining, refreshInterval);
-
-    _updateState(TimerStatus.running);
-
-    _timerSubscription = _timer!.listen(
-      _tick,
-      onDone: _done,
-    );
-
-    _delegate.onStart();
-  }
-
-  void _stop(bool isStopped) {
-    if (!_isRunning) {
-      return;
-    }
-
-    _preemptiveInterruptionStatus =
-        isStopped ? TimerStatus.stopped : TimerStatus.paused;
-
-    // Cancelling will cause the subscription's 'onDone' handler to be invoked.
-    _timer!.cancel();
-  }
-
-  void _tick(CountdownTimer _) {
+  void _tick(Ticker _) {
     _updateState(TimerStatus.running);
   }
 
   void _done() {
-    _updateState(_preemptiveInterruptionStatus ?? TimerStatus.completed);
-
-    _timerSubscription?.cancel();
-
-    _timer = null;
-    _timerSubscription = null;
-    _preemptiveInterruptionStatus = null;
-
-    _previousElapsed = Duration.zero;
+    _updateState(TimerStatus.completed);
 
     _delegate.onStop();
-    if (state.status == TimerStatus.completed) {
-      _delegate.onComplete();
-    }
+    _delegate.onComplete();
   }
 
   void _updateState(TimerStatus status) {
-    final currentElapsed = _timer!.elapsed;
-    final elapsedSinceLastUpdate = currentElapsed - _previousElapsed;
-
-    state = state._elapse(elapsedSinceLastUpdate, status);
-    _previousElapsed = currentElapsed;
+    state = state._update(_ticker.elapsed, status);
   }
 
-  bool get _isRunning => _timer?.isRunning ?? false;
+  Duration _chooseRefreshInterval(Duration? remaining) {
+    if (remaining == null) {
+      return _defaultRefreshInterval;
+    }
+
+    // Pausing and resuming like mad can cause 'remaining' to be negative.
+    if (remaining <= Duration.zero) {
+      return Duration.zero;
+    }
+
+    return remaining > _defaultRefreshInterval
+        ? _defaultRefreshInterval
+        : remaining;
+  }
 }
 
 final timerNotifierProvider =
@@ -205,7 +180,6 @@ final timerNotifierProvider =
         onComplete: player.playTimerAlarm,
       ),
     );
-    ref.onDispose(timerNotifier.stop);
 
     return timerNotifier..start();
   },
@@ -226,17 +200,3 @@ final timerStatusProvider = Provider.autoDispose<TimerStatus>(
     timerNotifierProvider.select((timerState) => timerState.status),
   ),
 );
-
-// Doesn't differentiate between 'start' vs 'resume' and 'stop' vs 'pause' as it
-// isn't needed.
-class _TimerDelegate {
-  final void Function() onStart;
-  final void Function() onStop;
-  final void Function() onComplete;
-
-  _TimerDelegate({
-    required this.onStart,
-    required this.onStop,
-    required this.onComplete,
-  });
-}

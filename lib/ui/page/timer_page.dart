@@ -110,24 +110,24 @@ class _CountdownWidget extends ConsumerWidget {
       case TimerStatus.running:
         durationColor = colorScheme.primary;
         break;
-      case TimerStatus.paused:
+      case TimerStatus.stopped:
         durationColor = colorScheme.error;
         break;
       case TimerStatus.completed:
-      case TimerStatus.stopped:
         durationColor = colorScheme.secondary;
+        break;
     }
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: !timerStatus.isFinished
+      onTap: timerStatus != TimerStatus.completed
           ? () {
               final timerNotifier = ref.read(timerNotifierProvider.notifier);
 
               if (timerStatus == TimerStatus.running) {
-                timerNotifier.pause();
+                timerNotifier.stop();
               } else {
-                timerNotifier.resume();
+                timerNotifier.start();
               }
             }
           : null,
@@ -169,7 +169,7 @@ class _BackButton extends ConsumerWidget {
       },
       mini: true,
       child: Icon(
-        timerStatus.isFinished
+        timerStatus == TimerStatus.completed
             ? Icons.arrow_back_ios_rounded
             : Icons.stop_rounded,
       ),

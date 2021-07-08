@@ -79,7 +79,7 @@ final roundDataNotifierProvider =
   (ref) {
     final timerNotifier = ref.watch(timerNotifierProvider.notifier);
 
-    return RoundDataNotifier(timerNotifier.accurateElapsed);
+    return RoundDataNotifier(() => timerNotifier.accurateElapsed);
   },
 );
 
