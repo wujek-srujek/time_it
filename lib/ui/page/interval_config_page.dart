@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../provider/interval_config.dart';
 import 'timer_page.dart';
 
-// Design and behavior blatantly copied from the standard Android Clock app.
+// Design and behavior influenced by the standard Android Clock app.
 class IntervalConfigPage extends StatelessWidget {
   const IntervalConfigPage();
 
@@ -40,6 +40,7 @@ class IntervalConfigPage extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
                 child: Container(
@@ -48,11 +49,12 @@ class IntervalConfigPage extends StatelessWidget {
                   child: const _IntervalTextWidget(),
                 ),
               ),
-              const Divider(
+              Divider(
                 thickness: 2,
+                color: Theme.of(context).textTheme.bodyText2!.color,
               ),
               const Expanded(
-                flex: 3,
+                flex: 4,
                 child: Padding(
                   padding: EdgeInsets.only(top: 24),
                   child: _DialWidget(),
@@ -82,18 +84,17 @@ class _IntervalTextWidget extends ConsumerWidget {
       children: [
         _UnitTile(
           intervalConfig.hours,
-          unitLabel: 'h',
-          customTextColor: textColor,
+          textColor: textColor,
         ),
+        _DotsTile(textColor: textColor),
         _UnitTile(
           intervalConfig.minutes,
-          unitLabel: 'm',
-          customTextColor: textColor,
+          textColor: textColor,
         ),
+        _DotsTile(textColor: textColor),
         _UnitTile(
           intervalConfig.seconds,
-          unitLabel: 's',
-          customTextColor: textColor,
+          textColor: textColor,
         ),
         GestureDetector(
           onLongPress: intervalConfig.isNotEmpty
@@ -119,37 +120,61 @@ class _IntervalTextWidget extends ConsumerWidget {
 
 class _UnitTile extends StatelessWidget {
   final int amount;
-  final String unitLabel;
-  final Color? customTextColor;
+  final Color? textColor;
 
-  const _UnitTile(
-    this.amount, {
-    required this.unitLabel,
-    this.customTextColor,
+  const _UnitTile(this.amount, {this.textColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      flex: 4,
+      child: _TextTile(
+        '$amount'.padLeft(2, '0'),
+        textColor: textColor,
+      ),
+    );
+  }
+}
+
+class _DotsTile extends StatelessWidget {
+  final Color? textColor;
+
+  const _DotsTile({this.textColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: _TextTile(
+        ':',
+        textColor: textColor,
+      ),
+    );
+  }
+}
+
+class _TextTile extends StatelessWidget {
+  final String text;
+  final Color? textColor;
+
+  const _TextTile(
+    this.text, {
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-
-    return RichText(
-      text: TextSpan(
-        text: '$amount'.padLeft(2, '0'),
-        style: textTheme.headline2!.copyWith(
-          color: customTextColor,
-          fontFeatures: [
-            const FontFeature.tabularFigures(),
-          ],
-        ),
-        children: [
-          TextSpan(
-            text: unitLabel,
-            style: textTheme.headline6!.copyWith(
-              color: customTextColor,
-            ),
+    return FittedBox(
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.bodyText2!.copyWith(
+            color: textColor,
+            fontFeatures: [
+              const FontFeature.tabularFigures(),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -160,39 +185,60 @@ class _DialWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textStyle = Theme.of(context).textTheme.headline3!.copyWith(
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final borderRadius = BorderRadius.circular(16);
+    final textStyle = theme.textTheme.bodyText2!.copyWith(
       fontFeatures: [
         const FontFeature.tabularFigures(),
       ],
     );
 
-    TableRow makeRow(List<int?> digits) {
-      return TableRow(
-        children: digits.map((digit) {
-          if (digit == null) {
-            return const SizedBox.shrink();
-          }
+    Widget makeRow(List<int?> digits) {
+      return Expanded(
+        child: Row(
+          children: digits.map((digit) {
+            final body = digit == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    child: InkWell(
+                      highlightColor: primaryColor.withAlpha(75),
+                      borderRadius: borderRadius,
+                      onTap: () => ref
+                          .read(intervalConfigNotifierProvider.notifier)
+                          .addDigit(digit),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: borderRadius,
+                          border: Border.all(
+                            color: textStyle.color!,
+                          ),
+                          color: primaryColor.withAlpha(50),
+                        ),
+                        child: FittedBox(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              '$digit',
+                              style: textStyle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
 
-          return Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 8),
-            child: TextButton(
-              onPressed: () => ref
-                  .read(intervalConfigNotifierProvider.notifier)
-                  .addDigit(digit),
-              style: TextButton.styleFrom(
-                shape: const CircleBorder(),
-              ),
-              child: Text(
-                '$digit',
-                style: textStyle,
-              ),
-            ),
-          );
-        }).toList(),
+            return Expanded(child: body);
+          }).toList(),
+        ),
       );
     }
 
-    return Table(
+    return Column(
       children: [
         makeRow([1, 2, 3]),
         makeRow([4, 5, 6]),
