@@ -39,6 +39,11 @@ class IntervalConfigNotifier extends StateNotifier<IntervalConfig> {
         super(IntervalConfig.zero);
 
   void addDigit(int digit) {
+    if (_digitCount == 0 && digit == 0) {
+      // No use for leading zeros.
+      return;
+    }
+
     if (_digitCount < _input.length) {
       _update(() {
         // Traverse the input and move the digits by one spot to the left to
