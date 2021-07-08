@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/interval_config.dart';
+import '../widget/fitted_text_button.dart';
 import 'timer_page.dart';
 
 // Design and behavior influenced by the standard Android Clock app.
@@ -185,15 +186,6 @@ class _DialWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-    final borderRadius = BorderRadius.circular(16);
-    final textStyle = theme.textTheme.bodyText2!.copyWith(
-      fontFeatures: [
-        const FontFeature.tabularFigures(),
-      ],
-    );
-
     Widget makeRow(List<int?> digits) {
       return Expanded(
         child: Row(
@@ -205,30 +197,11 @@ class _DialWidget extends ConsumerWidget {
                       horizontal: 12,
                       vertical: 12,
                     ),
-                    child: InkWell(
-                      highlightColor: primaryColor.withAlpha(75),
-                      borderRadius: borderRadius,
+                    child: FittedTextButton(
+                      '$digit',
                       onTap: () => ref
                           .read(intervalConfigNotifierProvider.notifier)
                           .addDigit(digit),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: borderRadius,
-                          border: Border.all(
-                            color: textStyle.color!,
-                          ),
-                          color: primaryColor.withAlpha(50),
-                        ),
-                        child: FittedBox(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text(
-                              '$digit',
-                              style: textStyle,
-                            ),
-                          ),
-                        ),
-                      ),
                     ),
                   );
 

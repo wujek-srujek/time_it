@@ -1,7 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
+import '../widget/fitted_text_button.dart';
 import 'interval_config_page.dart';
 
 class ModeSelectionPage extends StatelessWidget {
@@ -46,17 +45,11 @@ class _ModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-    final textStyle = theme.textTheme.bodyText2!;
-    final borderRadius = BorderRadius.circular(16);
-
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        child: InkWell(
-          highlightColor: primaryColor.withAlpha(75),
-          borderRadius: borderRadius,
+        child: FittedTextButton(
+          modeName,
           onTap: () {
             Navigator.push<void>(
               context,
@@ -65,28 +58,6 @@ class _ModeButton extends StatelessWidget {
               ),
             );
           },
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              border: Border.all(
-                color: textStyle.color!,
-              ),
-              color: primaryColor.withAlpha(50),
-            ),
-            child: FittedBox(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  modeName,
-                  style: textStyle.copyWith(
-                    fontFeatures: [
-                      const FontFeature.tabularFigures(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );
