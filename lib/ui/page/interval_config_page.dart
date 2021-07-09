@@ -7,6 +7,7 @@ import '../../provider/interval_config.dart';
 import '../widget/common_features.dart';
 import '../widget/fitted_text.dart';
 import '../widget/fitted_text_button.dart';
+import '../widget/page_scaffold.dart';
 import 'timer_page.dart';
 
 // Design and behavior influenced by the standard Android Clock app.
@@ -20,11 +21,8 @@ class IntervalConfigPage extends StatelessWidget {
       builder: (context, ref, child) {
         final intervalConfig = ref.watch(intervalConfigNotifierProvider);
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Define interval'),
-          ),
-          body: child,
+        return PageScaffold(
+          title: 'Define interval',
           floatingActionButton: intervalConfig.isNotEmpty
               ? FloatingActionButton(
                   onPressed: () {
@@ -37,35 +35,31 @@ class IntervalConfigPage extends StatelessWidget {
                   child: const Icon(Icons.play_arrow_rounded),
                 )
               : null,
+          child: child!,
         );
       },
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Container(
-                  alignment: Alignment.bottomCenter,
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: const _IntervalTextWidget(),
-                ),
-              ),
-              Divider(
-                thickness: 2,
-                color: textStyle(context).color,
-              ),
-              const Expanded(
-                flex: 4,
-                child: Padding(
-                  padding: EdgeInsets.only(top: 24),
-                  child: _DialWidget(),
-                ),
-              ),
-            ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Container(
+              alignment: Alignment.bottomCenter,
+              padding: const EdgeInsets.only(bottom: 24),
+              child: const _IntervalTextWidget(),
+            ),
           ),
-        ),
+          Divider(
+            thickness: 2,
+            color: textStyle(context).color,
+          ),
+          const Expanded(
+            flex: 4,
+            child: Padding(
+              padding: EdgeInsets.only(top: 24),
+              child: _DialWidget(),
+            ),
+          ),
+        ],
       ),
     );
   }

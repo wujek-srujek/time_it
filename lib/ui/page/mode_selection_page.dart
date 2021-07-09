@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../widget/fitted_text_button.dart';
+import '../widget/page_scaffold.dart';
 import 'interval_config_page.dart';
 
 class ModeSelectionPage extends StatelessWidget {
@@ -8,27 +9,20 @@ class ModeSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Choose mode'),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              _ModeButton(
-                modeName: 'AMRAP',
-                targetPage: IntervalConfigPage(),
-              ),
-              Expanded(
-                flex: 3,
-                child: SizedBox.shrink(),
-              ),
-            ],
+    return PageScaffold(
+      title: 'Choose mode',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: const [
+          _ModeButton(
+            modeName: 'AMRAP',
+            targetPage: IntervalConfigPage(),
           ),
-        ),
+          Expanded(
+            flex: 3,
+            child: SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

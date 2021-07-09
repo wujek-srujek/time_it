@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/round_data.dart';
 import '../widget/fitted_text.dart';
+import '../widget/page_scaffold.dart';
 
 class RoundSummaryPage extends ConsumerWidget {
   const RoundSummaryPage();
@@ -17,38 +18,31 @@ class RoundSummaryPage extends ConsumerWidget {
     final slowestRoundTextColor = colorScheme.error;
     final fastestRoundTextColor = colorScheme.primary;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Round summary'),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              if (!roundData.areAllRoundDurationsEqual)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: _RoundStatisticsWidget(
-                      slowestRoundTextColor: slowestRoundTextColor,
-                      fastestRoundTextColor: fastestRoundTextColor,
-                    ),
-                  ),
+    return PageScaffold(
+      title: 'Round summary',
+      child: Column(
+        children: [
+          if (!roundData.areAllRoundDurationsEqual)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-              Expanded(
-                flex: 4,
-                child: _RoundsList(
+                child: _RoundStatisticsWidget(
                   slowestRoundTextColor: slowestRoundTextColor,
                   fastestRoundTextColor: fastestRoundTextColor,
                 ),
               ),
-            ],
+            ),
+          Expanded(
+            flex: 4,
+            child: _RoundsList(
+              slowestRoundTextColor: slowestRoundTextColor,
+              fastestRoundTextColor: fastestRoundTextColor,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

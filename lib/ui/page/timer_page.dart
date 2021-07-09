@@ -8,6 +8,7 @@ import '../../provider/timer.dart';
 import '../../util/duration_x.dart';
 import '../widget/common_features.dart';
 import '../widget/fitted_text.dart';
+import '../widget/page_scaffold.dart';
 import 'round_summary_page.dart';
 
 class TimerPage extends StatelessWidget {
@@ -15,25 +16,20 @@ class TimerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              Expanded(
-                child: _RoundsWidget(),
-              ),
-              Expanded(
-                child: _CountdownWidget(),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return PageScaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: const _BackButton(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: const [
+          Expanded(
+            child: _RoundsWidget(),
+          ),
+          Expanded(
+            child: _CountdownWidget(),
+          ),
+        ],
+      ),
     );
   }
 }
