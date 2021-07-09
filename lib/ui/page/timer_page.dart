@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../provider/round_data.dart';
 import '../../provider/timer.dart';
 import '../../util/duration_x.dart';
+import '../widget/common_features.dart';
+import '../widget/fitted_text.dart';
 import 'round_summary_page.dart';
 
 class TimerPage extends StatelessWidget {
@@ -62,31 +64,22 @@ class _RoundsWidget extends ConsumerWidget {
     }
 
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: borderRadius,
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: FittedBox(
-              child: Text(
-                roundData != null
-                    ? formatRoundDuration(roundData.lastRoundDuration)
-                    : '--',
-                style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                  fontFeatures: [
-                    const FontFeature.tabularFigures(),
-                  ],
-                ),
-              ),
+            child: FittedText(
+              roundData != null
+                  ? formatRoundDuration(roundData.lastRoundDuration)
+                  : '--',
             ),
           ),
           Expanded(
             flex: 3,
-            child: FittedBox(
-              child: Text(
-                roundData != null ? '${roundData.roundDurations.length}' : '0',
-              ),
+            child: FittedText(
+              roundData != null ? '${roundData.roundDurations.length}' : '0',
             ),
           ),
         ],
@@ -119,7 +112,7 @@ class _CountdownWidget extends ConsumerWidget {
     }
 
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: borderRadius,
       onTap: timerStatus != TimerStatus.completed
           ? () {
               final timerNotifier = ref.read(timerNotifierProvider.notifier);
@@ -131,23 +124,15 @@ class _CountdownWidget extends ConsumerWidget {
               }
             }
           : null,
-      child: FittedBox(
-        child: Consumer(
-          builder: (context, watch, _) {
-            final timerState = ref.watch(timerNotifierProvider);
+      child: Consumer(
+        builder: (context, watch, _) {
+          final timerState = ref.watch(timerNotifierProvider);
 
-            return Text(
-              _formatRemaining(timerState.remaining),
-              textAlign: TextAlign.center,
-              style: theme.textTheme.headline2!.copyWith(
-                color: durationColor,
-                fontFeatures: [
-                  const FontFeature.tabularFigures(),
-                ],
-              ),
-            );
-          },
-        ),
+          return FittedText(
+            _formatRemaining(timerState.remaining),
+            color: durationColor,
+          );
+        },
       ),
     );
   }

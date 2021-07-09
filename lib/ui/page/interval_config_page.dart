@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/interval_config.dart';
+import '../widget/common_features.dart';
+import '../widget/fitted_text.dart';
 import '../widget/fitted_text_button.dart';
 import 'timer_page.dart';
 
@@ -52,7 +54,7 @@ class IntervalConfigPage extends StatelessWidget {
               ),
               Divider(
                 thickness: 2,
-                color: Theme.of(context).textTheme.bodyText2!.color,
+                color: textStyle(context).color,
               ),
               const Expanded(
                 flex: 4,
@@ -129,9 +131,9 @@ class _UnitTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       flex: 4,
-      child: _TextTile(
+      child: FittedText(
         '$amount'.padLeft(2, '0'),
-        textColor: textColor,
+        color: textColor,
       ),
     );
   }
@@ -145,37 +147,9 @@ class _DotsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: _TextTile(
+      child: FittedText(
         ':',
-        textColor: textColor,
-      ),
-    );
-  }
-}
-
-class _TextTile extends StatelessWidget {
-  final String text;
-  final Color? textColor;
-
-  const _TextTile(
-    this.text, {
-    this.textColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FittedBox(
-      child: Padding(
-        padding: const EdgeInsets.all(2),
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.bodyText2!.copyWith(
-            color: textColor,
-            fontFeatures: [
-              const FontFeature.tabularFigures(),
-            ],
-          ),
-        ),
+        color: textColor,
       ),
     );
   }

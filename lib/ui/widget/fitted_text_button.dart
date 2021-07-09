@@ -1,6 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+
+import 'common_features.dart';
+import 'fitted_text.dart';
 
 class FittedTextButton extends StatelessWidget {
   final String text;
@@ -14,9 +15,7 @@ class FittedTextButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textStyle = theme.textTheme.bodyText2!;
     final primaryColor = theme.colorScheme.primary;
-    final borderRadius = BorderRadius.circular(16);
 
     return InkWell(
       highlightColor: primaryColor.withAlpha(75),
@@ -26,22 +25,13 @@ class FittedTextButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: borderRadius,
           border: Border.all(
-            color: textStyle.color!,
+            color: textStyle(context).color!,
           ),
           color: primaryColor.withAlpha(50),
         ),
         child: Padding(
           padding: const EdgeInsets.all(32),
-          child: FittedBox(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                fontFeatures: [
-                  const FontFeature.tabularFigures(),
-                ],
-              ),
-            ),
-          ),
+          child: FittedText(text),
         ),
       ),
     );

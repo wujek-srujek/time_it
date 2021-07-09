@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/round_data.dart';
+import '../widget/fitted_text.dart';
 
 class RoundSummaryPage extends ConsumerWidget {
   const RoundSummaryPage();
@@ -26,17 +27,20 @@ class RoundSummaryPage extends ConsumerWidget {
           child: Column(
             children: [
               if (!roundData.areAllRoundDurationsEqual)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: _RoundStatisticsWidget(
-                    slowestRoundTextColor: slowestRoundTextColor,
-                    fastestRoundTextColor: fastestRoundTextColor,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: _RoundStatisticsWidget(
+                      slowestRoundTextColor: slowestRoundTextColor,
+                      fastestRoundTextColor: fastestRoundTextColor,
+                    ),
                   ),
                 ),
               Expanded(
+                flex: 4,
                 child: _RoundsList(
                   slowestRoundTextColor: slowestRoundTextColor,
                   fastestRoundTextColor: fastestRoundTextColor,
@@ -63,51 +67,46 @@ class _RoundStatisticsWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final roundData = ref.watch(roundDataNotifierProvider)!;
 
-    final baseTextStyle = Theme.of(context).textTheme.headline5!.copyWith(
-      fontFeatures: [
-        const FontFeature.tabularFigures(),
-      ],
-    );
-
-    TableRow makeRow(
-      String label,
-      Duration duration,
-      Color? textColor,
-    ) {
-      final textStyle = baseTextStyle.copyWith(color: textColor);
-
-      return TableRow(
-        children: [
-          Text(
-            label,
-            style: textStyle,
-          ),
-          Text(
-            formatRoundDuration(duration),
-            style: textStyle,
-          ),
-        ],
-      );
-    }
-
-    return Table(
+    return Column(
       children: [
-        makeRow(
+        _makeRow(
           'Slowest:',
           roundData.slowestRoundDuration,
           slowestRoundTextColor,
         ),
-        makeRow(
+        _makeRow(
           'Fastest:',
           roundData.fastestRoundDuration,
           fastestRoundTextColor,
         ),
-        makeRow(
+        _makeRow(
           'Average:',
           roundData.averageRoundDuration,
           null,
         ),
       ],
+    );
+  }
+
+  Widget _makeRow(String label, Duration duration, Color? textColor) {
+    return Expanded(
+      child: Row(
+        children: [
+          Expanded(
+            child: FittedText(
+              label,
+              alignment: Alignment.centerLeft,
+              color: textColor,
+            ),
+          ),
+          Expanded(
+            child: FittedText(
+              formatRoundDuration(duration),
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -125,14 +124,7 @@ class _RoundsList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final roundData = ref.watch(roundDataNotifierProvider)!;
 
-    final theme = Theme.of(context);
-
-    final onSurfaceColor = theme.colorScheme.onSurface;
-    final baseTextStyle = theme.textTheme.headline4!.copyWith(
-      fontFeatures: [
-        const FontFeature.tabularFigures(),
-      ],
-    );
+    final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
 
     return ListView.builder(
       itemCount: roundData.roundDurations.length,
@@ -156,10 +148,10 @@ class _RoundsList extends ConsumerWidget {
             child: Text('${index + 1}'),
           ),
           title: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 36),
-            child: Text(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: FittedText(
               formatRoundDuration(roundDuration),
-              style: baseTextStyle.copyWith(color: textColor),
+              color: textColor,
             ),
           ),
         );
