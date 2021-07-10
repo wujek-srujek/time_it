@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'common_features.dart';
 import 'fitted_text.dart';
+import 'size_dependent_padding.dart';
 
 class FittedTextButton extends StatelessWidget {
   final String text;
@@ -29,11 +30,14 @@ class FittedTextButton extends StatelessWidget {
           ),
           color: primaryColor.withAlpha(50),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(32),
+        child: SizeDependentPadding.all(
+          _paddingRatio,
+          calculationBase: CalculationBase.smallerSide,
           child: FittedText(text),
         ),
       ),
     );
   }
 }
+
+const _paddingRatio = 0.075;
