@@ -3,8 +3,6 @@ import 'package:riverpod/riverpod.dart';
 
 @immutable
 class IntervalConfig {
-  static const IntervalConfig zero = IntervalConfig();
-
   final int hours;
   final int minutes;
   final int seconds;
@@ -18,7 +16,8 @@ class IntervalConfig {
         assert(minutes >= 0),
         assert(minutes <= 99),
         assert(seconds >= 0),
-        assert(seconds <= 99);
+        assert(seconds <= 99),
+        assert(hours > 0 || minutes > 0 || seconds > 0);
 
   Duration asDuration() => Duration(
         hours: hours,
@@ -29,14 +28,14 @@ class IntervalConfig {
   bool get isNotEmpty => asDuration() > Duration.zero;
 }
 
-class IntervalConfigNotifier extends StateNotifier<IntervalConfig> {
+class IntervalConfigNotifier extends StateNotifier<IntervalConfig?> {
   final List<int> _input;
   int _digitCount;
 
   IntervalConfigNotifier()
       : _digitCount = 0,
         _input = List.filled(6, 0),
-        super(IntervalConfig.zero);
+        super(null);
 
   void addDigit(int digit) {
     if (_digitCount == 0 && digit == 0) {
@@ -90,15 +89,17 @@ class IntervalConfigNotifier extends StateNotifier<IntervalConfig> {
   void _update(void Function() operations) {
     operations();
 
-    state = IntervalConfig(
-      hours: _input[0] * 10 + _input[1],
-      minutes: _input[2] * 10 + _input[3],
-      seconds: _input[4] * 10 + _input[5],
-    );
+    state = _digitCount > 0
+        ? IntervalConfig(
+            hours: _input[0] * 10 + _input[1],
+            minutes: _input[2] * 10 + _input[3],
+            seconds: _input[4] * 10 + _input[5],
+          )
+        : null;
   }
 }
 
 final intervalConfigNotifierProvider =
-    StateNotifierProvider.autoDispose<IntervalConfigNotifier, IntervalConfig>(
+    StateNotifierProvider.autoDispose<IntervalConfigNotifier, IntervalConfig?>(
   (ref) => IntervalConfigNotifier(),
 );

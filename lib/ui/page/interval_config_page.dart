@@ -19,7 +19,7 @@ class IntervalConfigPage extends StatelessWidget {
     // Use StatelessWidget + Consumer to have 'child' support.
     return Consumer(
       builder: (context, ref, child) {
-        final intervalConfig = ref.watch(intervalConfigNotifierProvider);
+        final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
 
         return PageScaffold(
           title: 'Define interval',
@@ -70,7 +70,7 @@ class _IntervalTextWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalConfig = ref.watch(intervalConfigNotifierProvider);
+    final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
 
     final textColor = intervalConfig.isNotEmpty
         ? Theme.of(context).colorScheme.primary
@@ -189,3 +189,32 @@ class _DialWidget extends ConsumerWidget {
     );
   }
 }
+
+// [IntervalConfig] may be null in [intervalConfigNotifierProvider] so let's
+// use a 'null object'. If not, `null` would need to be dealt with in many
+// places in this library.
+
+class _UnsetIntervalConfig implements IntervalConfig {
+  const _UnsetIntervalConfig();
+
+  @override
+  Duration asDuration() => throw UnimplementedError('must not be called');
+
+  @override
+  bool get isNotEmpty => false;
+
+  @override
+  int get hours => 0;
+
+  @override
+  int get minutes => 0;
+
+  @override
+  int get seconds => 0;
+}
+
+final _neverNullIntervalConfigProvider =
+    Provider.autoDispose<IntervalConfig>((ref) {
+  return ref.watch(intervalConfigNotifierProvider) ??
+      const _UnsetIntervalConfig();
+});

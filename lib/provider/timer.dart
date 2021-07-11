@@ -16,7 +16,7 @@ enum TimerStatus {
 
 @immutable
 class TimerState {
-  final Duration interval;
+  final Duration? interval;
 
   /// Elapsed time.
   ///
@@ -31,7 +31,7 @@ class TimerState {
     required this.status,
   });
 
-  const TimerState.initial(Duration interval)
+  const TimerState.initial(Duration? interval)
       : this._(
           interval: interval,
           elapsed: Duration.zero,
@@ -42,7 +42,9 @@ class TimerState {
   ///
   /// It is computed by subtracting [elapsed] from [interval]. Due to this, it
   /// can be negative.
-  Duration get remaining => interval - elapsed;
+  ///
+  /// If [interval] is not specified, this will return `null`.
+  Duration? get remaining => interval != null ? interval! - elapsed : null;
 
   TimerState _update(Duration elapsed, TimerStatus status) {
     return TimerState._(
@@ -83,7 +85,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
   final Ticker _ticker;
   late final StreamSubscription<Ticker> _tickerSubscription;
 
-  TimerNotifier(Duration interval, this._delegate)
+  TimerNotifier(Duration? interval, this._delegate)
       : _ticker = Ticker(limit: interval),
         super(TimerState.initial(interval)) {
     _tickerSubscription = _ticker.stream.listen(
@@ -168,7 +170,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
-    final interval = ref.watch(intervalConfigNotifierProvider).asDuration();
+    final interval = ref.watch(intervalConfigNotifierProvider)?.asDuration();
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 

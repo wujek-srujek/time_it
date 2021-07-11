@@ -125,7 +125,7 @@ class _CountdownWidget extends ConsumerWidget {
           final timerState = ref.watch(timerNotifierProvider);
 
           return FittedText(
-            _formatRemaining(timerState.remaining),
+            _formatRemaining(timerState.remaining!),
             color: durationColor,
           );
         },
