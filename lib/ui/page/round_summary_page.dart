@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/round_data.dart';
+import '../../util/duration_formatter.dart';
 import '../widget/fitted_text.dart';
 import '../widget/page_scaffold.dart';
 
@@ -82,7 +83,7 @@ class _RoundStatisticsWidget extends ConsumerWidget {
     );
   }
 
-  Widget _makeRow(String label, Duration duration, Color? textColor) {
+  Widget _makeRow(String label, Duration roundDuration, Color? textColor) {
     return Expanded(
       child: Row(
         children: [
@@ -95,7 +96,7 @@ class _RoundStatisticsWidget extends ConsumerWidget {
           ),
           Expanded(
             child: FittedText(
-              formatRoundDuration(duration),
+              formatRoundDuration(roundDuration),
               color: textColor,
             ),
           ),
@@ -153,3 +154,10 @@ class _RoundsList extends ConsumerWidget {
     );
   }
 }
+
+String formatRoundDuration(Duration duration) => formatDuration(
+      duration,
+      forceComponent: TimeComponent.minute,
+      forceComponentPadding: TimeComponent.minute,
+      decimalPlaces: 2,
+    );

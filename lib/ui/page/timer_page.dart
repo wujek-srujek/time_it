@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/round_data.dart';
 import '../../provider/timer.dart';
-import '../../util/duration_x.dart';
+import '../../util/duration_formatter.dart';
 import '../widget/common_features.dart';
 import '../widget/fitted_text.dart';
 import '../widget/page_scaffold.dart';
@@ -125,7 +125,7 @@ class _CountdownWidget extends ConsumerWidget {
           final timerState = ref.watch(timerNotifierProvider);
 
           return FittedText(
-            _formatRemaining(timerState.remaining!),
+            _formatRemainingDuration(timerState.remaining!),
             color: durationColor,
           );
         },
@@ -158,39 +158,20 @@ class _BackButton extends ConsumerWidget {
   }
 }
 
-String _formatRemaining(Duration duration) {
-  final unpacked = duration.unpack();
+const _tenSeconds = Duration(seconds: 10);
 
-  final sb = StringBuffer();
-
-  if (unpacked.hours > 0) {
-    // If 'hours' comes first, no '0' padding needed.
-    sb..write(unpacked.hours.toString())..write(':');
+String _formatRemainingDuration(Duration remainingDuration) {
+  if (remainingDuration > _tenSeconds) {
+    return formatDuration(
+      remainingDuration,
+      forceComponent: TimeComponent.second,
+      forceComponentPadding: TimeComponent.second,
+    );
   }
 
-  if (unpacked.hours > 0 || unpacked.minutes > 0) {
-    // Even if 'minutes' is 0 but hours' exists, 'minutes' must be added.
-    // If 'minutes' comes first, no '0' padding needed; if 'hours' comes
-    // before, '0' padding needed.
-    var minutesString = unpacked.minutes.toString();
-    if (unpacked.hours > 0) {
-      minutesString = minutesString.padLeft(2, '0');
-    }
-    sb..write(minutesString)..write(':');
-  }
-
-  // 'seconds' is added unconditionally, even if 0.
-  final String b;
-  if (unpacked.hours == 0 && unpacked.minutes == 0 && unpacked.seconds < 10) {
-    // If only total < 10 'seconds' remain, fraction second with 1 decimal place
-    // is added. Any digits after the first decimal point are truncated.
-    final secondsWithFirstDecimal = (unpacked.seconds * 10).toInt() / 10;
-    b = secondsWithFirstDecimal.toStringAsFixed(1);
-  } else {
-    // In all other cases only whole seconds are used (fractions truncated).
-    b = unpacked.seconds.toInt().toString().padLeft(2, '0');
-  }
-  sb.write(b);
-
-  return sb.toString();
+  return formatDuration(
+    remainingDuration,
+    forceComponent: TimeComponent.second,
+    decimalPlaces: 1,
+  );
 }
