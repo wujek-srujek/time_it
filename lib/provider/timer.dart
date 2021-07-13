@@ -17,11 +17,6 @@ enum TimerStatus {
 @immutable
 class TimerState {
   final Duration? interval;
-
-  /// Elapsed time.
-  ///
-  /// Due to how the underlying platform timer works it can be slightly bigger
-  /// than [interval].
   final Duration elapsed;
   final TimerStatus status;
 
@@ -40,13 +35,18 @@ class TimerState {
 
   /// Remaining time.
   ///
-  /// It is computed by subtracting [elapsed] from [interval]. Due to this, it
-  /// can be negative.
+  /// It is computed by subtracting [elapsed] from [interval].
   ///
   /// If [interval] is not specified, this will return `null`.
   Duration? get remaining => interval != null ? interval! - elapsed : null;
 
   TimerState _update(Duration elapsed, TimerStatus status) {
+    // Due to how the underlying platform timer works, 'elapsed' can be greater
+    // than 'interval', but we don't want to deal with it so fix it.
+    if (interval != null && elapsed > interval!) {
+      elapsed = interval!;
+    }
+
     return TimerState._(
       interval: interval,
       elapsed: elapsed,
@@ -156,7 +156,8 @@ class TimerNotifier extends StateNotifier<TimerState> {
       return _defaultRefreshInterval;
     }
 
-    // Pausing and resuming like mad can cause 'remaining' to be negative.
+    // Pausing and resuming like mad can cause 'remaining' to be negative due to
+    // how the underlying platform timer works, so fix this.
     if (remaining <= Duration.zero) {
       return Duration.zero;
     }
