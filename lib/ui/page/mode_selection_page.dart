@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../widget/fitted_text_button.dart';
-import '../widget/page_scaffold.dart';
+import '../widget/common/fitted_text_button.dart';
+import '../widget/common/page_scaffold.dart';
 import 'interval_config_page.dart';
 
 class ModeSelectionPage extends StatelessWidget {

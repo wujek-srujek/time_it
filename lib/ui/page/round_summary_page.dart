@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/round_data.dart';
 import '../../util/duration_formatter.dart';
-import '../widget/fitted_text.dart';
-import '../widget/page_scaffold.dart';
+import '../widget/common/fitted_text.dart';
+import '../widget/common/page_scaffold.dart';
 
 class RoundSummaryPage extends ConsumerWidget {
   const RoundSummaryPage();

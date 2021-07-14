@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../provider/timer.dart';
-import '../../util/duration_formatter.dart';
-import 'common_features.dart';
-import 'fitted_text.dart';
+import '../../../provider/timer.dart';
+import '../../../util/duration_formatter.dart';
+import '../common/common_features.dart';
+import '../common/fitted_text.dart';
 
 class TimerWidget extends ConsumerWidget {
   const TimerWidget();

@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/interval_config.dart';
-import '../widget/common_features.dart';
-import '../widget/fitted_text.dart';
-import '../widget/fitted_text_button.dart';
-import '../widget/page_scaffold.dart';
-import '../widget/rounds_widget.dart';
-import '../widget/timer_widget.dart';
+import '../widget/common/common_features.dart';
+import '../widget/common/fitted_text.dart';
+import '../widget/common/fitted_text_button.dart';
+import '../widget/common/page_scaffold.dart';
+import '../widget/mode/rounds_widget.dart';
+import '../widget/mode/timer_widget.dart';
 import 'workout_page.dart';
 
 // Design and behavior influenced by the standard Android Clock app.

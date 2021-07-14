@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/timer.dart';
-import '../widget/page_scaffold.dart';
+import '../widget/common/page_scaffold.dart';
 
 class WorkoutPage extends StatelessWidget {
   final Widget topWidget;
