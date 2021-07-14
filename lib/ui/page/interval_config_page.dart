@@ -8,7 +8,9 @@ import '../widget/common_features.dart';
 import '../widget/fitted_text.dart';
 import '../widget/fitted_text_button.dart';
 import '../widget/page_scaffold.dart';
-import 'timer_page.dart';
+import '../widget/rounds_widget.dart';
+import '../widget/timer_widget.dart';
+import 'workout_page.dart';
 
 // Design and behavior influenced by the standard Android Clock app.
 class IntervalConfigPage extends StatelessWidget {
@@ -28,7 +30,10 @@ class IntervalConfigPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (context) => const TimerPage(),
+                        builder: (context) => const WorkoutPage(
+                          topWidget: RoundsWidget(),
+                          bottomWidget: TimerWidget(),
+                        ),
                       ),
                     );
                   },
