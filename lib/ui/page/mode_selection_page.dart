@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../widget/common/fitted_text_button.dart';
 import '../widget/common/page_scaffold.dart';
+import '../widget/mode/rounds_widget.dart';
+import '../widget/mode/stopwatch_widget.dart';
 import 'interval_config_page.dart';
+import 'workout_page.dart';
 
 class ModeSelectionPage extends StatelessWidget {
   const ModeSelectionPage();
@@ -18,8 +21,15 @@ class ModeSelectionPage extends StatelessWidget {
             modeName: 'AMRAP',
             targetPage: IntervalConfigPage(),
           ),
+          _ModeButton(
+            modeName: 'Stopwatch',
+            targetPage: WorkoutPage(
+              topWidget: RoundsWidget(),
+              bottomWidget: StopwatchWidget(),
+            ),
+          ),
           Expanded(
-            flex: 3,
+            flex: 2,
             child: SizedBox.shrink(),
           ),
         ],

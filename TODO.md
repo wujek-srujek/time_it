@@ -1,9 +1,6 @@
 # TODO
 
 1. More modes (current: AMRAP for rounds):
-   1. Stopwatch:
-      1. Basically AMRAP, but with time counted up instead of down.
-      1. With round registering and summary.
    1. Intervals:
       1. Multiple intervals (reorderable list) of different duration possible.
       1. Possible to define how many times to repeat the interval sequence.
