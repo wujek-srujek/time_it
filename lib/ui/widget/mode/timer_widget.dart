@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../provider/timer.dart';
-import '../../../util/duration_formatter.dart';
 import '../common/common_features.dart';
 import '../common/fitted_text.dart';
 
+typedef TimerStateFormatter = String Function(TimerState);
+
 class TimerWidget extends ConsumerWidget {
-  const TimerWidget();
+  final TimerStateFormatter timerStateFormatter;
+
+  const TimerWidget({required this.timerStateFormatter});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,29 +50,11 @@ class TimerWidget extends ConsumerWidget {
           final timerState = ref.watch(timerNotifierProvider);
 
           return FittedText(
-            _formatRemainingDuration(timerState.remaining!),
+            timerStateFormatter(timerState),
             color: durationColor,
           );
         },
       ),
     );
   }
-}
-
-const _tenSeconds = Duration(seconds: 10);
-
-String _formatRemainingDuration(Duration remainingDuration) {
-  if (remainingDuration > _tenSeconds) {
-    return formatDuration(
-      remainingDuration,
-      forceComponent: TimeComponent.second,
-      forceComponentPadding: TimeComponent.second,
-    );
-  }
-
-  return formatDuration(
-    remainingDuration,
-    forceComponent: TimeComponent.second,
-    decimalPlaces: 1,
-  );
 }
