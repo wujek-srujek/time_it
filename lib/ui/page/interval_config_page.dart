@@ -35,6 +35,7 @@ class IntervalConfigPage extends StatelessWidget {
                           topWidget: RoundsWidget(),
                           bottomWidget: CountdownTimerWidget(),
                           menuItems: [
+                            RestartMenuButton(),
                             RoundSummaryMenuButton(),
                           ],
                         ),

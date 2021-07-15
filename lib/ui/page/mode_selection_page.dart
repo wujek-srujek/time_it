@@ -29,6 +29,7 @@ class ModeSelectionPage extends StatelessWidget {
               topWidget: RoundsWidget(),
               bottomWidget: StopwatchWidget(),
               menuItems: [
+                RestartMenuButton(),
                 RoundSummaryMenuButton(),
               ],
             ),
