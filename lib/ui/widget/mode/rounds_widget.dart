@@ -13,45 +13,41 @@ class RoundsWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timerStatus = ref.watch(timerStatusProvider);
-    final roundData = ref.watch(roundDataNotifierProvider);
-
-    final void Function()? onTap;
-    if (timerStatus != TimerStatus.completed) {
-      onTap = () => ref
-          .read(
-            roundDataNotifierProvider.notifier,
-          )
-          .registerRound();
-    } else if (roundData != null) {
-      onTap = () => Navigator.of(context).pushReplacement(
-            MaterialPageRoute<void>(
-              builder: (context) => const RoundSummaryPage(),
-            ),
-          );
-    } else {
-      onTap = null;
-    }
 
     return InkWell(
       borderRadius: borderRadius,
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: FittedText(
-              roundData != null
-                  ? formatRoundDuration(roundData.lastRoundDuration)
-                  : '--',
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: FittedText(
-              roundData != null ? '${roundData.roundDurations.length}' : '0',
-            ),
-          ),
-        ],
+      onTap: timerStatus != TimerStatus.completed
+          ? () => ref
+              .read(
+                roundDataNotifierProvider.notifier,
+              )
+              .registerRound()
+          : null,
+      child: Consumer(
+        builder: (context, ref, child) {
+          final roundData = ref.watch(roundDataNotifierProvider);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: FittedText(
+                  roundData != null
+                      ? formatRoundDuration(roundData.lastRoundDuration)
+                      : '--',
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: FittedText(
+                  roundData != null
+                      ? '${roundData.roundDurations.length}'
+                      : '0',
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
+import '../widget/mode/menu_items.dart';
 import '../widget/mode/rounds_widget.dart';
 import '../widget/mode/stopwatch_widget.dart';
 import 'interval_config_page.dart';
@@ -27,6 +28,9 @@ class ModeSelectionPage extends StatelessWidget {
             targetPage: WorkoutPage(
               topWidget: RoundsWidget(),
               bottomWidget: StopwatchWidget(),
+              menuItems: [
+                RoundSummaryMenuButton(),
+              ],
             ),
           ),
           Expanded(

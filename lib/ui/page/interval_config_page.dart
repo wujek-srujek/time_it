@@ -9,6 +9,7 @@ import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/countdown_timer_widget.dart';
+import '../widget/mode/menu_items.dart';
 import '../widget/mode/rounds_widget.dart';
 import 'workout_page.dart';
 
@@ -33,6 +34,9 @@ class IntervalConfigPage extends StatelessWidget {
                         builder: (context) => const WorkoutPage(
                           topWidget: RoundsWidget(),
                           bottomWidget: CountdownTimerWidget(),
+                          menuItems: [
+                            RoundSummaryMenuButton(),
+                          ],
                         ),
                       ),
                     );
