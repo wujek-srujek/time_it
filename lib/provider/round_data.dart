@@ -71,6 +71,14 @@ class RoundDataNotifier extends StateNotifier<RoundData?> {
       averageRoundDuration: elapsed ~/ _roundDurations.length,
     );
   }
+
+  void reset() {
+    _roundDurations.clear();
+    _previousElapsed = Duration.zero;
+    _slowestRoundIndex = null;
+    _fastestRoundIndex = null;
+    state = null;
+  }
 }
 
 final roundDataNotifierProvider =
