@@ -65,8 +65,8 @@ class _WorkoutMenu extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CommonButton(
-            onTap: () => Navigator.of(context).pop(),
+          CommonButton.destructive(
+            onLongPress : () => Navigator.of(context).pop(),
             child: const Icon(Icons.arrow_back_ios),
           ),
           ...menuItems,
