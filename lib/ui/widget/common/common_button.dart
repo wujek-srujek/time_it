@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'common_features.dart';
-import 'fitted_text.dart';
 import 'size_dependent_padding.dart';
 
-class FittedTextButton extends StatelessWidget {
-  final String text;
+class CommonButton extends StatelessWidget {
   final void Function()? onTap;
+  final Widget child;
 
-  const FittedTextButton(
-    this.text, {
+  const CommonButton({
     this.onTap,
+    required this.child,
   });
 
   @override
@@ -33,7 +32,7 @@ class FittedTextButton extends StatelessWidget {
         child: SizeDependentPadding.all(
           _paddingRatio,
           calculationBase: CalculationBase.smallerSide,
-          child: FittedText(text),
+          child: child,
         ),
       ),
     );

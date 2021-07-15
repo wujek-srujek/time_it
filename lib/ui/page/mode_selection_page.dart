@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../widget/common/fitted_text_button.dart';
+import '../widget/common/common_button.dart';
+import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/rounds_widget.dart';
 import '../widget/mode/stopwatch_widget.dart';
@@ -52,8 +53,7 @@ class _ModeButton extends StatelessWidget {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        child: FittedTextButton(
-          modeName,
+        child: CommonButton(
           onTap: () {
             Navigator.push<void>(
               context,
@@ -62,6 +62,7 @@ class _ModeButton extends StatelessWidget {
               ),
             );
           },
+          child: FittedText(modeName),
         ),
       ),
     );

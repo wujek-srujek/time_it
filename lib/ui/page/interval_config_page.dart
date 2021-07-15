@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/interval_config.dart';
+import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
-import '../widget/common/fitted_text_button.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/countdown_timer_widget.dart';
 import '../widget/mode/rounds_widget.dart';
@@ -170,11 +170,11 @@ class _DialWidget extends ConsumerWidget {
                       horizontal: 12,
                       vertical: 12,
                     ),
-                    child: FittedTextButton(
-                      '$digit',
+                    child: CommonButton(
                       onTap: () => ref
                           .read(intervalConfigNotifierProvider.notifier)
                           .addDigit(digit),
+                      child: FittedText('$digit'),
                     ),
                   );
 
