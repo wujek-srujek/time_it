@@ -82,16 +82,12 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
   final _TimerDelegate _delegate;
 
-  final Ticker _ticker;
-  late final StreamSubscription<Ticker> _tickerSubscription;
+  late Ticker _ticker;
+  late StreamSubscription<Ticker> _tickerSubscription;
 
   TimerNotifier(Duration? interval, this._delegate)
-      : _ticker = Ticker(limit: interval),
-        super(TimerState.initial(interval)) {
-    _tickerSubscription = _ticker.stream.listen(
-      _tick,
-      onDone: _done,
-    );
+      : super(TimerState.initial(interval)) {
+    _init();
   }
 
   void start() {
@@ -106,6 +102,14 @@ class TimerNotifier extends StateNotifier<TimerState> {
     _updateState(TimerStatus.stopped);
 
     _delegate.onStop();
+  }
+
+  void restart() {
+    _tickerSubscription.cancel();
+
+    _init();
+
+    start();
   }
 
   @override
@@ -135,6 +139,14 @@ class TimerNotifier extends StateNotifier<TimerState> {
   ///
   /// Calling this method doesn't influence the state in any way.
   Duration get accurateElapsed => _ticker.elapsed;
+
+  void _init() {
+    _ticker = Ticker(limit: state.interval);
+    _tickerSubscription = _ticker.stream.listen(
+      _tick,
+      onDone: _done,
+    );
+  }
 
   void _tick(Ticker _) {
     _updateState(TimerStatus.running);
