@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/timer.dart';
 import '../widget/common/common_button.dart';
+import '../widget/common/common_features.dart';
 import '../widget/common/page_scaffold.dart';
 
 class WorkoutPage extends StatelessWidget {
@@ -53,7 +54,7 @@ class _WorkoutMenu extends StatelessWidget {
         final isRunning = ref.watch(timerStatusProvider) == TimerStatus.running;
 
         return AnimatedOpacity(
-          duration: _opacityAnimationDuration,
+          duration: opacityAnimationDuration,
           opacity: !isRunning ? 1 : 0,
           child: IgnorePointer(
             ignoring: isRunning,
@@ -66,7 +67,7 @@ class _WorkoutMenu extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CommonButton.destructive(
-            onLongPress : () => Navigator.of(context).pop(),
+            onLongPress: () => Navigator.of(context).pop(),
             child: const Icon(Icons.arrow_back_ios),
           ),
           ...menuItems,
@@ -75,5 +76,3 @@ class _WorkoutMenu extends StatelessWidget {
     );
   }
 }
-
-const _opacityAnimationDuration = Duration(milliseconds: 200);

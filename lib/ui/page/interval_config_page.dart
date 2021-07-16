@@ -19,35 +19,8 @@ class IntervalConfigPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use StatelessWidget + Consumer to have 'child' support.
-    return Consumer(
-      builder: (context, ref, child) {
-        final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
-
-        return PageScaffold(
-          title: 'Define interval',
-          floatingActionButton: !intervalConfig.isEmpty
-              ? FloatingActionButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => const WorkoutPage(
-                          topWidget: RoundsWidget(),
-                          bottomWidget: CountdownTimerWidget(),
-                          menuItems: [
-                            RestartMenuButton(),
-                            RoundSummaryMenuButton(),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Icon(Icons.play_arrow_rounded),
-                )
-              : null,
-          child: child!,
-        );
-      },
+    return PageScaffold(
+      title: 'Define interval',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -158,32 +131,40 @@ class _DotsTile extends StatelessWidget {
   }
 }
 
+const _startButtonMarker = -1;
+
 class _DialWidget extends ConsumerWidget {
   const _DialWidget();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Widget mapper(int? digit) {
+      final Widget body;
+      if (digit == _startButtonMarker) {
+        body = const _StartButton();
+      } else if (digit != null) {
+        body = CommonButton(
+          onTap: () =>
+              ref.read(intervalConfigNotifierProvider.notifier).addDigit(digit),
+          child: FittedText('$digit'),
+        );
+      } else {
+        body = const SizedBox.shrink();
+      }
+
+      return Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: body,
+        ),
+      );
+    }
+
     Widget makeRow(List<int?> digits) {
       return Expanded(
         child: Row(
-          children: digits.map((digit) {
-            final body = digit == null
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    child: CommonButton(
-                      onTap: () => ref
-                          .read(intervalConfigNotifierProvider.notifier)
-                          .addDigit(digit),
-                      child: FittedText('$digit'),
-                    ),
-                  );
-
-            return Expanded(child: body);
-          }).toList(),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: digits.map(mapper).toList(),
         ),
       );
     }
@@ -193,8 +174,43 @@ class _DialWidget extends ConsumerWidget {
         makeRow([1, 2, 3]),
         makeRow([4, 5, 6]),
         makeRow([7, 8, 9]),
-        makeRow([null, 0, null]),
+        makeRow([null, 0, _startButtonMarker]),
       ],
+    );
+  }
+}
+
+class _StartButton extends ConsumerWidget {
+  const _StartButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
+
+    return AnimatedOpacity(
+      opacity: !intervalConfig.isEmpty ? 1 : 0,
+      duration: opacityAnimationDuration,
+      child: IgnorePointer(
+        ignoring: intervalConfig.isEmpty,
+        child: CommonButton(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => const WorkoutPage(
+                  topWidget: RoundsWidget(),
+                  bottomWidget: CountdownTimerWidget(),
+                  menuItems: [
+                    RestartMenuButton(),
+                    RoundSummaryMenuButton(),
+                  ],
+                ),
+              ),
+            );
+          },
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          child: const Icon(Icons.play_arrow_rounded),
+        ),
+      ),
     );
   }
 }

@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+const opacityAnimationDuration = Duration(milliseconds: 200);
+
 final borderRadius = BorderRadius.circular(16);
 
 TextStyle textStyle(BuildContext context, {Color? color}) {
