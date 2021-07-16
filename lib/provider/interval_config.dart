@@ -25,7 +25,7 @@ class IntervalConfig {
         seconds: seconds,
       );
 
-  bool get isNotEmpty => asDuration() > Duration.zero;
+  bool get isEmpty => hours == 0 && minutes == 0 && seconds == 0;
 }
 
 class IntervalConfigNotifier extends StateNotifier<IntervalConfig?> {

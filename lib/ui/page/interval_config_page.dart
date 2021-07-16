@@ -26,7 +26,7 @@ class IntervalConfigPage extends StatelessWidget {
 
         return PageScaffold(
           title: 'Define interval',
-          floatingActionButton: intervalConfig.isNotEmpty
+          floatingActionButton: !intervalConfig.isEmpty
               ? FloatingActionButton(
                   onPressed: () {
                     Navigator.of(context).push(
@@ -82,9 +82,8 @@ class _IntervalTextWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
 
-    final textColor = intervalConfig.isNotEmpty
-        ? Theme.of(context).colorScheme.primary
-        : null;
+    final textColor =
+        !intervalConfig.isEmpty ? Theme.of(context).colorScheme.primary : null;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -104,13 +103,13 @@ class _IntervalTextWidget extends ConsumerWidget {
           textColor: textColor,
         ),
         GestureDetector(
-          onLongPress: intervalConfig.isNotEmpty
+          onLongPress: !intervalConfig.isEmpty
               ? () => ref
                   .read(intervalConfigNotifierProvider.notifier)
                   .deleteAllDigits()
               : null,
           child: IconButton(
-            onPressed: intervalConfig.isNotEmpty
+            onPressed: !intervalConfig.isEmpty
                 ? () => ref
                     .read(intervalConfigNotifierProvider.notifier)
                     .deleteLastDigit()
@@ -211,7 +210,7 @@ class _UnsetIntervalConfig implements IntervalConfig {
   Duration asDuration() => throw UnimplementedError('must not be called');
 
   @override
-  bool get isNotEmpty => false;
+  bool get isEmpty => true;
 
   @override
   int get hours => 0;
