@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/timer.dart';
+import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
-import '../widget/common/common_features.dart';
 import '../widget/common/page_scaffold.dart';
 
 class WorkoutPage extends StatelessWidget {
@@ -53,13 +53,9 @@ class _WorkoutMenu extends StatelessWidget {
       builder: (context, ref, child) {
         final isRunning = ref.watch(timerStatusProvider) == TimerStatus.running;
 
-        return AnimatedOpacity(
-          duration: opacityAnimationDuration,
-          opacity: !isRunning ? 1 : 0,
-          child: IgnorePointer(
-            ignoring: isRunning,
-            child: child,
-          ),
+        return Activation(
+          isActive: !isRunning,
+          child: child!,
         );
       },
       child: Row(

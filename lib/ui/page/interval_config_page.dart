@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/interval_config.dart';
+import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
@@ -187,29 +188,25 @@ class _StartButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
 
-    return AnimatedOpacity(
-      opacity: !intervalConfig.isEmpty ? 1 : 0,
-      duration: opacityAnimationDuration,
-      child: IgnorePointer(
-        ignoring: intervalConfig.isEmpty,
-        child: CommonButton(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (context) => const WorkoutPage(
-                  topWidget: RoundsWidget(),
-                  bottomWidget: CountdownTimerWidget(),
-                  menuItems: [
-                    RestartMenuButton(),
-                    RoundSummaryMenuButton(),
-                  ],
-                ),
+    return Activation(
+      isActive: !intervalConfig.isEmpty,
+      child: CommonButton(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => const WorkoutPage(
+                topWidget: RoundsWidget(),
+                bottomWidget: CountdownTimerWidget(),
+                menuItems: [
+                  RestartMenuButton(),
+                  RoundSummaryMenuButton(),
+                ],
               ),
-            );
-          },
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          child: const Icon(Icons.play_arrow_rounded),
-        ),
+            ),
+          );
+        },
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        child: const Icon(Icons.play_arrow_rounded),
       ),
     );
   }
