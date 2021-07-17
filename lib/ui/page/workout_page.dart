@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../provider/timer.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
+import '../widget/common/common_features.dart';
 import '../widget/common/page_scaffold.dart';
 
-class WorkoutPage extends StatelessWidget {
+class WorkoutPage extends StatefulWidget {
   final Widget topWidget;
   final Widget bottomWidget;
   final List<Widget> menuItems;
@@ -18,25 +19,72 @@ class WorkoutPage extends StatelessWidget {
   });
 
   @override
+  _WorkoutPageState createState() => _WorkoutPageState();
+}
+
+class _WorkoutPageState extends State<WorkoutPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      lowerBound: _smallerMainBodyScale,
+      value: 1,
+      duration: animationDuration,
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return PageScaffold(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            flex: 4,
-            child: topWidget,
-          ),
-          Expanded(
-            flex: 4,
-            child: bottomWidget,
-          ),
-          Expanded(
-            child: _WorkoutMenu(
-              menuItems: menuItems,
+      child: Consumer(
+        builder: (context, ref, child) {
+          ref.listen(timerStatusProvider, (timerStatus) {
+            final isRunning = timerStatus == TimerStatus.running;
+            _animationController.animateTo(
+              isRunning ? 1 : _smallerMainBodyScale,
+            );
+          });
+
+          return child!;
+        },
+        child: Stack(
+          children: [
+            ScaleTransition(
+              alignment: Alignment.topCenter,
+              scale: _animationController,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: widget.topWidget,
+                  ),
+                  Expanded(
+                    child: widget.bottomWidget,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _WorkoutMenu(
+                  menuItems: widget.menuItems,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -59,7 +107,6 @@ class _WorkoutMenu extends StatelessWidget {
         );
       },
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CommonButton.destructive(
@@ -72,3 +119,5 @@ class _WorkoutMenu extends StatelessWidget {
     );
   }
 }
+
+const _smallerMainBodyScale = 0.9;

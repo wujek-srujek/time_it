@@ -8,7 +8,7 @@ import 'common_features.dart';
 /// is wrapped in [AnimatedOpacity] and [IgnorePointer] to disappear completely
 /// and ignore touches.
 ///
-/// [opacityAnimationDuration] is used for the opacity animation.
+/// [animationDuration] is used for the opacity animation.
 class Activation extends StatelessWidget {
   final bool isActive;
   final Widget child;
@@ -22,7 +22,7 @@ class Activation extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedOpacity(
       opacity: isActive ? 1 : 0,
-      duration: opacityAnimationDuration,
+      duration: animationDuration,
       child: IgnorePointer(
         ignoring: !isActive,
         child: child,

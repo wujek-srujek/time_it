@@ -5,6 +5,7 @@ import '../../../provider/round_data.dart';
 import '../../../provider/timer.dart';
 import '../../page/round_summary_page.dart';
 import '../common/common_button.dart';
+import '../common/common_features.dart';
 
 class RoundSummaryMenuButton extends ConsumerWidget {
   const RoundSummaryMenuButton();
@@ -14,8 +15,9 @@ class RoundSummaryMenuButton extends ConsumerWidget {
     final roundData = ref.watch(roundDataNotifierProvider);
     final isActive = roundData != null;
 
-    return Opacity(
+    return AnimatedOpacity(
       opacity: isActive ? 1 : _inactiveOpacity,
+      duration: animationDuration,
       child: CommonButton(
         onTap: isActive
             ? () => Navigator.of(context).push(

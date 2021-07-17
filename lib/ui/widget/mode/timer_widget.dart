@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../provider/timer.dart';
+import '../common/common_features.dart';
 import '../common/fitted_text.dart';
 import 'mode_widget.dart';
 
@@ -45,12 +46,18 @@ class TimerWidget extends ConsumerWidget {
             }
           : null,
       child: Consumer(
-        builder: (context, watch, _) {
+        builder: (context, watch, child) {
           final timerState = ref.watch(timerNotifierProvider);
 
-          return FittedText(
-            timerStateFormatter(timerState),
-            color: durationColor,
+          return TweenAnimationBuilder<Color?>(
+            tween: ColorTween(end: durationColor),
+            duration: animationDuration,
+            builder: (context, color, child) {
+              return FittedText(
+                timerStateFormatter(timerState),
+                color: color,
+              );
+            },
           );
         },
       ),

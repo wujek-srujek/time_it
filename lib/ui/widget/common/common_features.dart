@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-const opacityAnimationDuration = Duration(milliseconds: 200);
+const animationDuration = Duration(milliseconds: 200);
 
 final borderRadius = BorderRadius.circular(16);
 
