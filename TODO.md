@@ -10,7 +10,6 @@
       1. Basically a single interval with no predefined round count.
       1. With round registering (to allow pacing optimizations).
 1. Support landscape mode properly.
-1. Version info.
 1. I18n.
 1. Mode config peristence.
    1. Mmaybe even workout mamagement?

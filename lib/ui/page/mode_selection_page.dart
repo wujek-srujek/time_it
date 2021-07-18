@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
@@ -16,27 +17,35 @@ class ModeSelectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return PageScaffold(
       title: 'Choose mode',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
-          _ModeButton(
-            modeName: 'AMRAP',
-            targetPage: IntervalConfigPage(),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: const [
+              _ModeButton(
+                modeName: 'AMRAP',
+                targetPage: IntervalConfigPage(),
+              ),
+              _ModeButton(
+                modeName: 'Stopwatch',
+                targetPage: WorkoutPage(
+                  topWidget: RoundsWidget(),
+                  bottomWidget: StopwatchWidget(),
+                  menuItems: [
+                    RestartMenuButton(),
+                    RoundSummaryMenuButton(),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: SizedBox.shrink(),
+              ),
+            ],
           ),
-          _ModeButton(
-            modeName: 'Stopwatch',
-            targetPage: WorkoutPage(
-              topWidget: RoundsWidget(),
-              bottomWidget: StopwatchWidget(),
-              menuItems: [
-                RestartMenuButton(),
-                RoundSummaryMenuButton(),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: SizedBox.shrink(),
+          const Positioned(
+            bottom: 0,
+            child: _VersionInfo(),
           ),
         ],
       ),
@@ -70,6 +79,43 @@ class _ModeButton extends StatelessWidget {
           child: FittedText(modeName),
         ),
       ),
+    );
+  }
+}
+
+class _VersionInfo extends StatefulWidget {
+  const _VersionInfo();
+
+  @override
+  _VersionInfoState createState() => _VersionInfoState();
+}
+
+class _VersionInfoState extends State<_VersionInfo> {
+  late final Future<PackageInfo> _packageInfoFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _packageInfoFuture = PackageInfo.fromPlatform();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: _packageInfoFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final info = snapshot.data!;
+
+          return Opacity(
+            opacity: 0.25,
+            child: Text(info.version),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 }
