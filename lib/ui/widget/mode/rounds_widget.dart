@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../provider/round_data.dart';
 import '../../../provider/timer.dart';
 import '../../page/round_summary_page.dart';
-import '../common/common_features.dart';
 import '../common/fitted_text.dart';
+import 'mode_widget.dart';
 
 class RoundsWidget extends ConsumerWidget {
   const RoundsWidget();
@@ -14,8 +14,7 @@ class RoundsWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timerStatus = ref.watch(timerStatusProvider);
 
-    return InkWell(
-      borderRadius: borderRadius,
+    return ModeWidget(
       onTap: timerStatus != TimerStatus.completed
           ? () => ref
               .read(

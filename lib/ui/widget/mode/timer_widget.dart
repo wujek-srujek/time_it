@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../provider/timer.dart';
-import '../common/common_features.dart';
 import '../common/fitted_text.dart';
+import 'mode_widget.dart';
 
 typedef TimerStateFormatter = String Function(TimerState);
 
@@ -32,8 +32,7 @@ class TimerWidget extends ConsumerWidget {
         break;
     }
 
-    return InkWell(
-      borderRadius: borderRadius,
+    return ModeWidget(
       onTap: timerStatus != TimerStatus.completed
           ? () {
               final timerNotifier = ref.read(timerNotifierProvider.notifier);
