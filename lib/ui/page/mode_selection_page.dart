@@ -9,6 +9,7 @@ import '../widget/mode/menu_items.dart';
 import '../widget/mode/rounds_widget.dart';
 import '../widget/mode/stopwatch_widget.dart';
 import 'interval_input_page.dart';
+import 'intervals_setup_page.dart';
 import 'workout_page.dart';
 
 class ModeSelectionPage extends StatelessWidget {
@@ -25,8 +26,8 @@ class ModeSelectionPage extends StatelessWidget {
             children: const [
               _AmrapModeButton(),
               _StopwatchModeButton(),
+              _IntervalsModeButton(),
               Expanded(
-                flex: 2,
                 child: SizedBox.shrink(),
               ),
             ],
@@ -126,6 +127,22 @@ class _StopwatchModeButton extends StatelessWidget {
           RoundSummaryMenuButton(),
         ],
       ),
+    );
+  }
+}
+
+// In this mode, potentially multiple intervals are defined and the workout is
+// finished when all of them complete. `intervalsSetupNotifierProvider`'s life
+// spans the whole intervals setup; `intervalInputProvider` is created and
+// disposed multiple times, each time a new interval is dfined.
+class _IntervalsModeButton extends StatelessWidget {
+  const _IntervalsModeButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _ModeButton(
+      modeName: 'Intervals',
+      targetPage: IntervalsSetupPage(),
     );
   }
 }
