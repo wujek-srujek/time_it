@@ -57,7 +57,10 @@ class _WorkoutPageState extends State<WorkoutPage>
             );
           });
 
-          return child!;
+          return WillPopScope(
+            onWillPop: () => Future.value(false),
+            child: child!,
+          );
         },
         child: Stack(
           children: [
