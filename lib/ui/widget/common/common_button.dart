@@ -13,6 +13,10 @@ import 'size_dependent_padding.dart';
 /// In the destructive variant, only the [onLongPress] action is allowed, and
 /// the background color is always fixed to [ColorScheme.error], without the
 /// possibility of overriding it.
+///
+/// If a `CommonButton` changes its variant (e.g. from destructive to defuault),
+/// it may be useful to use the [CommonButton.safetyCheck] factory and it decide
+/// dynamically which variant it should represent.
 class CommonButton extends StatelessWidget {
   final bool isDestructive;
   final void Function()? onTap;
@@ -33,6 +37,24 @@ class CommonButton extends StatelessWidget {
   })  : isDestructive = true,
         onTap = null,
         backgroundColor = null;
+
+  factory CommonButton.safetyCheck({
+    required bool Function() safetyCheck,
+    void Function()? action,
+    required Widget child,
+  }) {
+    if (!safetyCheck()) {
+      return CommonButton.destructive(
+        onLongPress: action,
+        child: child,
+      );
+    }
+
+    return CommonButton(
+      onTap: action,
+      child: child,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
