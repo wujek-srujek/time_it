@@ -65,14 +65,21 @@ class CommonButton extends StatelessWidget {
       borderRadius: borderRadius,
       onTap: onTap,
       onLongPress: onLongPress,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          border: Border.all(
-            color: textStyle(context).color!,
-          ),
-          color: color.withAlpha(150),
-        ),
+      child: TweenAnimationBuilder<Color?>(
+        duration: animationDuration,
+        tween: ColorTween(end: color.withAlpha(150)),
+        builder: (context, color, child) {
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: borderRadius,
+              border: Border.all(
+                color: textStyle(context).color!,
+              ),
+              color: color,
+            ),
+            child: child,
+          );
+        },
         child: SizeDependentPadding.all(
           _paddingRatio,
           calculationBase: CalculationBase.smallerSide,
