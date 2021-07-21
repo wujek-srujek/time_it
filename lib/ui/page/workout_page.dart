@@ -57,8 +57,15 @@ class _WorkoutPageState extends State<WorkoutPage>
             );
           });
 
+          final isCompleted =
+              ref.watch(timerStatusProvider) == TimerStatus.completed;
+
           return WillPopScope(
-            onWillPop: () => Future.value(false),
+            // No idea why this is still broken and undocumented, but we need
+            // a workaround - setting to `null` instead of a function returning
+            // `Future.value(true)` keeps the 'swipe to go back' iOS gesture.
+            // https://github.com/flutter/flutter/issues/14203#issuecomment-644239576
+            onWillPop: isCompleted ? null : () => Future.value(false),
             child: child!,
           );
         },
@@ -112,13 +119,25 @@ class _WorkoutMenu extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CommonButton.destructive(
-            onLongPress: () => Navigator.of(context).pop(),
-            child: const Icon(Icons.arrow_back_ios),
-          ),
+          const _GoBackMenuButton(),
           ...menuItems,
         ],
       ),
+    );
+  }
+}
+
+class _GoBackMenuButton extends ConsumerWidget {
+  const _GoBackMenuButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isCompleted = ref.watch(timerStatusProvider) == TimerStatus.completed;
+
+    return CommonButton.safetyCheck(
+      safetyCheck: () => isCompleted,
+      action: () => Navigator.of(context).pop(),
+      child: const Icon(Icons.arrow_back_ios),
     );
   }
 }

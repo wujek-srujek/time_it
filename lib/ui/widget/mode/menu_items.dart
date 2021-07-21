@@ -37,8 +37,11 @@ class RestartMenuButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CommonButton.destructive(
-      onLongPress: () {
+    final isCompleted = ref.watch(timerStatusProvider) == TimerStatus.completed;
+
+    return CommonButton.safetyCheck(
+      safetyCheck: () => isCompleted,
+      action: () {
         ref.read(roundDataNotifierProvider.notifier).reset();
         ref.read(timerNotifierProvider.notifier).restart();
       },
