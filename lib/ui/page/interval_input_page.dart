@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../provider/interval_config.dart';
+import '../../provider/interval_input.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
@@ -15,8 +15,8 @@ import '../widget/mode/rounds_widget.dart';
 import 'workout_page.dart';
 
 // Design and behavior influenced by the standard Android Clock app.
-class IntervalConfigPage extends StatelessWidget {
-  const IntervalConfigPage();
+class IntervalInputPage extends StatelessWidget {
+  const IntervalInputPage();
 
   @override
   Widget build(BuildContext context) {
@@ -54,38 +54,39 @@ class _IntervalTextWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
+    final intervalDefinition = ref.watch(_neverNullIntervalDefinitionProvider);
 
-    final textColor =
-        !intervalConfig.isEmpty ? Theme.of(context).colorScheme.primary : null;
+    final textColor = !intervalDefinition.isEmpty
+        ? Theme.of(context).colorScheme.primary
+        : null;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _UnitTile(
-          intervalConfig.hours,
+          intervalDefinition.hours,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          intervalConfig.minutes,
+          intervalDefinition.minutes,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          intervalConfig.seconds,
+          intervalDefinition.seconds,
           textColor: textColor,
         ),
         GestureDetector(
-          onLongPress: !intervalConfig.isEmpty
+          onLongPress: !intervalDefinition.isEmpty
               ? () => ref
-                  .read(intervalConfigNotifierProvider.notifier)
+                  .read(intervalInputNotifierProvider.notifier)
                   .deleteAllDigits()
               : null,
           child: IconButton(
-            onPressed: !intervalConfig.isEmpty
+            onPressed: !intervalDefinition.isEmpty
                 ? () => ref
-                    .read(intervalConfigNotifierProvider.notifier)
+                    .read(intervalInputNotifierProvider.notifier)
                     .deleteLastDigit()
                 : null,
             icon: const Icon(
@@ -146,7 +147,7 @@ class _DialWidget extends ConsumerWidget {
       } else if (digit != null) {
         body = CommonButton(
           onTap: () =>
-              ref.read(intervalConfigNotifierProvider.notifier).addDigit(digit),
+              ref.read(intervalInputNotifierProvider.notifier).addDigit(digit),
           child: FittedText('$digit'),
         );
       } else {
@@ -186,10 +187,10 @@ class _StartButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalConfig = ref.watch(_neverNullIntervalConfigProvider);
+    final intervalDefinition = ref.watch(_neverNullIntervalDefinitionProvider);
 
     return Activation(
-      isActive: !intervalConfig.isEmpty,
+      isActive: !intervalDefinition.isEmpty,
       child: CommonButton(
         onTap: () {
           Navigator.of(context).push(
@@ -212,12 +213,12 @@ class _StartButton extends ConsumerWidget {
   }
 }
 
-// [IntervalConfig] may be null in [intervalConfigNotifierProvider] so let's
+// [IntervalDefinition] may be null in [intervalInputNotifierProvider] so let's
 // use a 'null object'. If not, `null` would need to be dealt with in many
 // places in this library.
 
-class _UnsetIntervalConfig implements IntervalConfig {
-  const _UnsetIntervalConfig();
+class _UnsetIntervalDefinition implements IntervalDefinition {
+  const _UnsetIntervalDefinition();
 
   @override
   Duration toDuration() => throw UnimplementedError('must not be called');
@@ -235,8 +236,8 @@ class _UnsetIntervalConfig implements IntervalConfig {
   int get seconds => 0;
 }
 
-final _neverNullIntervalConfigProvider =
-    Provider.autoDispose<IntervalConfig>((ref) {
-  return ref.watch(intervalConfigNotifierProvider) ??
-      const _UnsetIntervalConfig();
+final _neverNullIntervalDefinitionProvider =
+    Provider.autoDispose<IntervalDefinition>((ref) {
+  return ref.watch(intervalInputNotifierProvider) ??
+      const _UnsetIntervalDefinition();
 });

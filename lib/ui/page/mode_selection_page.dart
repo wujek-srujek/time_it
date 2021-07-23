@@ -7,7 +7,7 @@ import '../widget/common/page_scaffold.dart';
 import '../widget/mode/menu_items.dart';
 import '../widget/mode/rounds_widget.dart';
 import '../widget/mode/stopwatch_widget.dart';
-import 'interval_config_page.dart';
+import 'interval_input_page.dart';
 import 'workout_page.dart';
 
 class ModeSelectionPage extends StatelessWidget {
@@ -24,7 +24,7 @@ class ModeSelectionPage extends StatelessWidget {
             children: const [
               _ModeButton(
                 modeName: 'AMRAP',
-                targetPage: IntervalConfigPage(),
+                targetPage: IntervalInputPage(),
               ),
               _ModeButton(
                 modeName: 'Stopwatch',

@@ -2,12 +2,12 @@ import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
 @immutable
-class IntervalConfig {
+class IntervalDefinition {
   final int hours;
   final int minutes;
   final int seconds;
 
-  const IntervalConfig({
+  const IntervalDefinition({
     this.hours = 0,
     this.minutes = 0,
     this.seconds = 0,
@@ -28,11 +28,11 @@ class IntervalConfig {
   bool get isEmpty => hours == 0 && minutes == 0 && seconds == 0;
 }
 
-class IntervalConfigNotifier extends StateNotifier<IntervalConfig?> {
+class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
   final List<int> _input;
   int _digitCount;
 
-  IntervalConfigNotifier()
+  IntervalInputNotifier()
       : _digitCount = 0,
         _input = List.filled(6, 0),
         super(null);
@@ -90,7 +90,7 @@ class IntervalConfigNotifier extends StateNotifier<IntervalConfig?> {
     operations();
 
     state = _digitCount > 0
-        ? IntervalConfig(
+        ? IntervalDefinition(
             hours: _input[0] * 10 + _input[1],
             minutes: _input[2] * 10 + _input[3],
             seconds: _input[4] * 10 + _input[5],
@@ -99,7 +99,7 @@ class IntervalConfigNotifier extends StateNotifier<IntervalConfig?> {
   }
 }
 
-final intervalConfigNotifierProvider =
-    StateNotifierProvider.autoDispose<IntervalConfigNotifier, IntervalConfig?>(
-  (ref) => IntervalConfigNotifier(),
+final intervalInputNotifierProvider = StateNotifierProvider.autoDispose<
+    IntervalInputNotifier, IntervalDefinition?>(
+  (ref) => IntervalInputNotifier(),
 );
