@@ -19,7 +19,7 @@ class IntervalConfig {
         assert(seconds <= 99),
         assert(hours > 0 || minutes > 0 || seconds > 0);
 
-  Duration asDuration() => Duration(
+  Duration toDuration() => Duration(
         hours: hours,
         minutes: minutes,
         seconds: seconds,

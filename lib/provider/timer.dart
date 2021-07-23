@@ -183,7 +183,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
-    final interval = ref.watch(intervalConfigNotifierProvider)?.asDuration();
+    final interval = ref.watch(intervalConfigNotifierProvider)?.toDuration();
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 

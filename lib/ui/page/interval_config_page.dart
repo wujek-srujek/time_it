@@ -220,7 +220,7 @@ class _UnsetIntervalConfig implements IntervalConfig {
   const _UnsetIntervalConfig();
 
   @override
-  Duration asDuration() => throw UnimplementedError('must not be called');
+  Duration toDuration() => throw UnimplementedError('must not be called');
 
   @override
   bool get isEmpty => true;
