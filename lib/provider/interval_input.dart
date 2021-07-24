@@ -2,12 +2,12 @@ import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
 @immutable
-class IntervalDefinition {
+class OngoingIntervalDefinition {
   final int hours;
   final int minutes;
   final int seconds;
 
-  const IntervalDefinition({
+  const OngoingIntervalDefinition({
     this.hours = 0,
     this.minutes = 0,
     this.seconds = 0,
@@ -28,14 +28,36 @@ class IntervalDefinition {
   bool get isEmpty => hours == 0 && minutes == 0 && seconds == 0;
 }
 
-class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
+@immutable
+class IntervalInputState {
+  final OngoingIntervalDefinition? ongoingDefinition;
+  final List<Duration> intervals;
+
+  const IntervalInputState({
+    required this.ongoingDefinition,
+    required this.intervals,
+  });
+
+  const IntervalInputState._initial()
+      : this(
+          ongoingDefinition: null,
+          intervals: const [],
+        );
+
+  List<Duration> get allIntervals => [
+        ...intervals,
+        if (ongoingDefinition != null) ongoingDefinition!.toDuration(),
+      ];
+}
+
+class IntervalInputNotifier extends StateNotifier<IntervalInputState> {
   final List<int> _input;
   int _digitCount;
 
   IntervalInputNotifier()
       : _digitCount = 0,
         _input = List.filled(6, 0),
-        super(null);
+        super(const IntervalInputState._initial());
 
   void addDigit(int digit) {
     if (_digitCount == 0 && digit == 0) {
@@ -44,7 +66,7 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
     }
 
     if (_digitCount < _input.length) {
-      _update(() {
+      _updateInput(() {
         // Traverse the input and move the digits by one spot to the left to
         // make space for the new one. Only relevant parts of the input are
         // considered.
@@ -60,7 +82,7 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
 
   void deleteLastDigit() {
     if (_digitCount > 0) {
-      _update(() {
+      _updateInput(() {
         // Traverse the input in reverse and move the digits by one spot to the
         // right to delete the last one. Only relevant parts of the input are
         // considered.
@@ -74,32 +96,50 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
     }
   }
 
-  void deleteAllDigits() {
+  void resetOngoingDefinition() {
     if (_digitCount > 0) {
-      _update(() {
-        for (var i = _input.length - _digitCount; i < _input.length; ++i) {
-          _input[i] = 0;
-        }
-
-        _digitCount = 0;
-      });
+      _updateInput(_resetInput);
     }
   }
 
-  void _update(void Function() operations) {
+  void completeOngoingDefinition() {
+    assert(state.ongoingDefinition != null);
+
+    _resetInput();
+    state = IntervalInputState(
+      ongoingDefinition: null,
+      intervals: [
+        ...state.intervals,
+        state.ongoingDefinition!.toDuration(),
+      ],
+    );
+  }
+
+  void _resetInput() {
+    for (var i = _input.length - _digitCount; i < _input.length; ++i) {
+      _input[i] = 0;
+    }
+
+    _digitCount = 0;
+  }
+
+  void _updateInput(void Function() operations) {
     operations();
 
-    state = _digitCount > 0
-        ? IntervalDefinition(
-            hours: _input[0] * 10 + _input[1],
-            minutes: _input[2] * 10 + _input[3],
-            seconds: _input[4] * 10 + _input[5],
-          )
-        : null;
+    state = IntervalInputState(
+      ongoingDefinition: _digitCount > 0
+          ? OngoingIntervalDefinition(
+              hours: _input[0] * 10 + _input[1],
+              minutes: _input[2] * 10 + _input[3],
+              seconds: _input[4] * 10 + _input[5],
+            )
+          : null,
+      intervals: state.intervals,
+    );
   }
 }
 
 final intervalInputNotifierProvider = StateNotifierProvider.autoDispose<
-    IntervalInputNotifier, IntervalDefinition?>(
+    IntervalInputNotifier, IntervalInputState>(
   (ref) => IntervalInputNotifier(),
 );

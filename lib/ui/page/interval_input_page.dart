@@ -54,9 +54,11 @@ class _IntervalTextWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinition = ref.watch(_neverNullIntervalDefinitionProvider);
+    final ongoingDefinition = ref.watch(
+      _safeOngoingIntervalDefinitionProvider,
+    );
 
-    final textColor = !intervalDefinition.isEmpty
+    final textColor = !ongoingDefinition.isEmpty
         ? Theme.of(context).colorScheme.primary
         : null;
 
@@ -64,27 +66,27 @@ class _IntervalTextWidget extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _UnitTile(
-          intervalDefinition.hours,
+          ongoingDefinition.hours,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          intervalDefinition.minutes,
+          ongoingDefinition.minutes,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          intervalDefinition.seconds,
+          ongoingDefinition.seconds,
           textColor: textColor,
         ),
         GestureDetector(
-          onLongPress: !intervalDefinition.isEmpty
+          onLongPress: !ongoingDefinition.isEmpty
               ? () => ref
                   .read(intervalInputNotifierProvider.notifier)
-                  .deleteAllDigits()
+                  .resetOngoingDefinition()
               : null,
           child: IconButton(
-            onPressed: !intervalDefinition.isEmpty
+            onPressed: !ongoingDefinition.isEmpty
                 ? () => ref
                     .read(intervalInputNotifierProvider.notifier)
                     .deleteLastDigit()
@@ -187,7 +189,9 @@ class _StartButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinition = ref.watch(_neverNullIntervalDefinitionProvider);
+    final intervalDefinition = ref.watch(
+      _safeOngoingIntervalDefinitionProvider,
+    );
 
     return Activation(
       isActive: !intervalDefinition.isEmpty,
@@ -213,11 +217,11 @@ class _StartButton extends ConsumerWidget {
   }
 }
 
-// [IntervalDefinition] may be null in [intervalInputNotifierProvider] so let's
-// use a 'null object'. If not, `null` would need to be dealt with in many
-// places in this library.
+// [OngoingIntervalDefinition] may be `null` in [intervalInputNotifierProvider]
+// so let's use a 'null object'. If not, `null` would need to be dealt with in
+// many places in this library.
 
-class _UnsetIntervalDefinition implements IntervalDefinition {
+class _UnsetIntervalDefinition implements OngoingIntervalDefinition {
   const _UnsetIntervalDefinition();
 
   @override
@@ -236,8 +240,13 @@ class _UnsetIntervalDefinition implements IntervalDefinition {
   int get seconds => 0;
 }
 
-final _neverNullIntervalDefinitionProvider =
-    Provider.autoDispose<IntervalDefinition>((ref) {
-  return ref.watch(intervalInputNotifierProvider) ??
-      const _UnsetIntervalDefinition();
-});
+final _safeOngoingIntervalDefinitionProvider =
+    Provider.autoDispose<OngoingIntervalDefinition>(
+  (ref) {
+    final ongoingDefinition = ref.watch(
+      intervalInputNotifierProvider.select((state) => state.ongoingDefinition),
+    );
+
+    return ongoingDefinition ?? const _UnsetIntervalDefinition();
+  },
+);
