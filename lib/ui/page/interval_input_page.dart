@@ -58,7 +58,7 @@ class _IntervalTextWidget extends ConsumerWidget {
       _safeOngoingIntervalDefinitionProvider,
     );
 
-    final textColor = !ongoingDefinition.isEmpty
+    final textColor = ongoingDefinition.isNotEmpty
         ? Theme.of(context).colorScheme.primary
         : null;
 
@@ -80,13 +80,13 @@ class _IntervalTextWidget extends ConsumerWidget {
           textColor: textColor,
         ),
         GestureDetector(
-          onLongPress: !ongoingDefinition.isEmpty
+          onLongPress: ongoingDefinition.isNotEmpty
               ? () => ref
                   .read(intervalInputNotifierProvider.notifier)
                   .resetOngoingDefinition()
               : null,
           child: IconButton(
-            onPressed: !ongoingDefinition.isEmpty
+            onPressed: ongoingDefinition.isNotEmpty
                 ? () => ref
                     .read(intervalInputNotifierProvider.notifier)
                     .deleteLastDigit()
@@ -194,7 +194,7 @@ class _StartButton extends ConsumerWidget {
     );
 
     return Activation(
-      isActive: !intervalDefinition.isEmpty,
+      isActive: intervalDefinition.isNotEmpty,
       child: CommonButton(
         onTap: () {
           Navigator.of(context).push(
@@ -228,9 +228,6 @@ class _UnsetIntervalDefinition implements OngoingIntervalDefinition {
   Duration toDuration() => throw UnimplementedError('must not be called');
 
   @override
-  bool get isEmpty => true;
-
-  @override
   int get hours => 0;
 
   @override
@@ -238,6 +235,10 @@ class _UnsetIntervalDefinition implements OngoingIntervalDefinition {
 
   @override
   int get seconds => 0;
+}
+
+extension _OngoingIntervalDefinitionX on OngoingIntervalDefinition {
+  bool get isNotEmpty => this is! _UnsetIntervalDefinition;
 }
 
 final _safeOngoingIntervalDefinitionProvider =

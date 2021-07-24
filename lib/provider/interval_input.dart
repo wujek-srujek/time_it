@@ -24,8 +24,6 @@ class OngoingIntervalDefinition {
         minutes: minutes,
         seconds: seconds,
       );
-
-  bool get isEmpty => hours == 0 && minutes == 0 && seconds == 0;
 }
 
 @immutable
