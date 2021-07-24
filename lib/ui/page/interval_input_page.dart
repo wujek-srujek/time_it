@@ -9,10 +9,16 @@ import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
-import '../widget/mode/countdown_timer_widget.dart';
-import '../widget/mode/menu_items.dart';
-import '../widget/mode/rounds_widget.dart';
-import 'workout_page.dart';
+
+class OnIntervalInputCompletedDelegate {
+  final IconData icon;
+  final void Function() callback;
+
+  const OnIntervalInputCompletedDelegate({
+    required this.icon,
+    required this.callback,
+  });
+}
 
 // Design and behavior influenced by the standard Android Clock app.
 class IntervalInputPage extends StatelessWidget {
@@ -135,7 +141,7 @@ class _DotsTile extends StatelessWidget {
   }
 }
 
-const _startButtonMarker = -1;
+const _completedButtonMarker = -1;
 
 class _DialWidget extends ConsumerWidget {
   const _DialWidget();
@@ -144,8 +150,8 @@ class _DialWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     Widget mapper(int? digit) {
       final Widget body;
-      if (digit == _startButtonMarker) {
-        body = const _StartButton();
+      if (digit == _completedButtonMarker) {
+        body = const _InputCompletedButton();
       } else if (digit != null) {
         body = CommonButton(
           onTap: () =>
@@ -178,14 +184,14 @@ class _DialWidget extends ConsumerWidget {
         makeRow([1, 2, 3]),
         makeRow([4, 5, 6]),
         makeRow([7, 8, 9]),
-        makeRow([null, 0, _startButtonMarker]),
+        makeRow([null, 0, _completedButtonMarker]),
       ],
     );
   }
 }
 
-class _StartButton extends ConsumerWidget {
-  const _StartButton();
+class _InputCompletedButton extends ConsumerWidget {
+  const _InputCompletedButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -193,25 +199,15 @@ class _StartButton extends ConsumerWidget {
       _safeOngoingIntervalDefinitionProvider,
     );
 
+    final delegate = ModalRoute.of(context)!.settings.arguments!
+        as OnIntervalInputCompletedDelegate;
+
     return Activation(
       isActive: intervalDefinition.isNotEmpty,
       child: CommonButton(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (context) => const WorkoutPage(
-                topWidget: RoundsWidget(),
-                bottomWidget: CountdownTimerWidget(),
-                menuItems: [
-                  RestartMenuButton(),
-                  RoundSummaryMenuButton(),
-                ],
-              ),
-            ),
-          );
-        },
+        onTap: delegate.callback,
         backgroundColor: Theme.of(context).colorScheme.secondary,
-        child: const Icon(Icons.play_arrow_rounded),
+        child: Icon(delegate.icon),
       ),
     );
   }

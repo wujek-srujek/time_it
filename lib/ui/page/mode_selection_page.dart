@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
+import '../widget/mode/countdown_timer_widget.dart';
 import '../widget/mode/menu_items.dart';
 import '../widget/mode/rounds_widget.dart';
 import '../widget/mode/stopwatch_widget.dart';
@@ -21,12 +22,13 @@ class ModeSelectionPage extends StatelessWidget {
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
+            children: [
               _ModeButton(
                 modeName: 'AMRAP',
-                targetPage: IntervalInputPage(),
+                targetPage: const IntervalInputPage(),
+                arguments: _amrapIntervalInputCompletedDelegate(context),
               ),
-              _ModeButton(
+              const _ModeButton(
                 modeName: 'Stopwatch',
                 targetPage: WorkoutPage(
                   topWidget: RoundsWidget(),
@@ -37,7 +39,7 @@ class ModeSelectionPage extends StatelessWidget {
                   ],
                 ),
               ),
-              Expanded(
+              const Expanded(
                 flex: 2,
                 child: SizedBox.shrink(),
               ),
@@ -56,10 +58,12 @@ class ModeSelectionPage extends StatelessWidget {
 class _ModeButton extends StatelessWidget {
   final String modeName;
   final Widget targetPage;
+  final Object? arguments;
 
   const _ModeButton({
     required this.modeName,
     required this.targetPage,
+    this.arguments,
   });
 
   @override
@@ -69,10 +73,12 @@ class _ModeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         child: CommonButton(
           onTap: () {
-            Navigator.push<void>(
-              context,
+            Navigator.of(context).push<void>(
               MaterialPageRoute(
                 builder: (context) => targetPage,
+                settings: RouteSettings(
+                  arguments: arguments,
+                ),
               ),
             );
           },
@@ -119,3 +125,24 @@ class _VersionInfoState extends State<_VersionInfo> {
     );
   }
 }
+
+OnIntervalInputCompletedDelegate _amrapIntervalInputCompletedDelegate(
+  BuildContext context,
+) =>
+    OnIntervalInputCompletedDelegate(
+      icon: Icons.play_arrow_rounded,
+      callback: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (context) => const WorkoutPage(
+              topWidget: RoundsWidget(),
+              bottomWidget: CountdownTimerWidget(),
+              menuItems: [
+                RestartMenuButton(),
+                RoundSummaryMenuButton(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
