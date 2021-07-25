@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../provider/round_data.dart';
 import '../../../provider/timer.dart';
 import '../../page/round_summary_page.dart';
+import '../common/activation.dart';
 import '../common/common_button.dart';
-import '../common/common_features.dart';
 
 class RoundSummaryMenuButton extends ConsumerWidget {
   const RoundSummaryMenuButton();
@@ -15,10 +15,9 @@ class RoundSummaryMenuButton extends ConsumerWidget {
     final roundData = ref.watch(roundDataNotifierProvider);
     final isActive = roundData != null;
 
-    return AnimatedOpacity(
-      opacity: isActive ? 1 : _inactiveOpacity,
-      duration: animationDuration,
-      child: CommonButton(
+    return Activation(
+      isActive: isActive,
+      child: CommonButton.primary(
         onTap: isActive
             ? () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
@@ -49,5 +48,3 @@ class RestartMenuButton extends ConsumerWidget {
     );
   }
 }
-
-const _inactiveOpacity = 0.25;
