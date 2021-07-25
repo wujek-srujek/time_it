@@ -9,6 +9,10 @@ class IntervalsSetupNotifier extends StateNotifier<List<Duration>> {
       interval,
     ];
   }
+
+  void reset() {
+    state = [];
+  }
 }
 
 final intervalsSetupNotifierProvider =

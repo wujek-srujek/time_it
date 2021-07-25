@@ -65,10 +65,13 @@ class _ActionsMenu extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Activation(
-          isActive: false,
+        Activation(
+          isActive: intervals.isNotEmpty,
           child: CommonButton.destructive(
-            child: Icon(Icons.clear_all),
+            onLongPress: () {
+              ref.read(intervalsSetupNotifierProvider.notifier).reset();
+            },
+            child: const Icon(Icons.clear_all),
           ),
         ),
         CommonButton(
