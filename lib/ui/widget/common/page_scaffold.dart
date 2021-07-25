@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 
 class PageScaffold extends StatelessWidget {
   final String? title;
-  final FloatingActionButtonLocation? floatingActionButtonLocation;
-  final Widget? floatingActionButton;
   final Widget child;
 
   const PageScaffold({
     this.title,
-    this.floatingActionButtonLocation,
-    this.floatingActionButton,
     required this.child,
   });
 
@@ -27,8 +23,6 @@ class PageScaffold extends StatelessWidget {
           child: child,
         ),
       ),
-      floatingActionButtonLocation: floatingActionButtonLocation,
-      floatingActionButton: floatingActionButton,
     );
   }
 }
