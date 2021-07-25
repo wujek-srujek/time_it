@@ -204,9 +204,8 @@ class _InputCompletedButton extends ConsumerWidget {
 
     return Activation(
       isActive: intervalDefinition.isNotEmpty,
-      child: CommonButton(
+      child: CommonButton.primary(
         onTap: delegate.callback,
-        backgroundColor: Theme.of(context).colorScheme.secondary,
         child: Icon(delegate.icon),
       ),
     );

@@ -3,49 +3,76 @@ import 'package:flutter/material.dart';
 import 'common_features.dart';
 import 'size_dependent_padding.dart';
 
+enum CommonButtonVariant {
+  /// A destructive button which supports long pressing only and uses
+  /// [ColorScheme.error] for its background color.
+  destructive,
+
+  /// A primary button which supports tapping, long pressing and uses
+  /// [ColorScheme.secondary] for its background color. There should most likely
+  /// be at most one such botton per page.
+  ///
+  /// The 'primary' variant uses `ColorScheme.secondary` (I know, confusing) as
+  /// this is what FABs use, and this button is king of a replacement for them.
+  primary,
+
+  /// A standard button which supports tapping, long pressing and uses
+  /// [ColorScheme.primary] background color.
+  ///
+  /// The 'standard' variant uses `ColorScheme.primary` (I know, confusing) as
+  /// this is what most buttons in this application should look like.
+  standard,
+}
+
 /// A button used throughout this app.
 ///
-/// It has two variants: default and 'destructive'.
+/// It supports variants defined in [CommonButtonVariant].
 ///
-/// In the default variant, it is possible to specify all the properties; if
-/// [backgroundColor] is not specified, [ColorScheme.primary] is used.
-///
-/// In the destructive variant, only the [onLongPress] action is allowed, and
-/// the background color is always fixed to [ColorScheme.error], without the
-/// possibility of overriding it.
-///
-/// If a `CommonButton` changes its variant (e.g. from destructive to defuault),
-/// it may be useful to use the [CommonButton.safetyCheck] factory and it decide
-/// dynamically which variant it should represent.
+/// If a `CommonButton` changes its variant (e.g. from destructive to standard),
+/// it may be useful to use the [CommonButton.safetyCheck] factory and let it
+/// decide dynamically which variant it should represent.
 class CommonButton extends StatelessWidget {
-  final bool isDestructive;
+  final CommonButtonVariant variant;
   final void Function()? onTap;
   final void Function()? onLongPress;
-  final Color? backgroundColor;
   final Widget child;
 
   const CommonButton({
     this.onTap,
     this.onLongPress,
-    this.backgroundColor,
     required this.child,
-  }) : isDestructive = false;
+  }) : variant = CommonButtonVariant.standard;
 
   const CommonButton.destructive({
     this.onLongPress,
     required this.child,
-  })  : isDestructive = true,
-        onTap = null,
-        backgroundColor = null;
+  })  : variant = CommonButtonVariant.destructive,
+        onTap = null;
+
+  const CommonButton.primary({
+    this.onTap,
+    required this.child,
+  })  : variant = CommonButtonVariant.primary,
+        onLongPress = null;
 
   factory CommonButton.safetyCheck({
     required bool Function() safetyCheck,
+    CommonButtonVariant variantIfSafe = CommonButtonVariant.standard,
     void Function()? action,
     required Widget child,
   }) {
+    assert(variantIfSafe != CommonButtonVariant.destructive);
+
     if (!safetyCheck()) {
       return CommonButton.destructive(
         onLongPress: action,
+        child: child,
+      );
+    }
+
+    if (variantIfSafe == CommonButtonVariant.primary) {
+      return CommonButton.primary(
+        onTap: action,
         child: child,
       );
     }
@@ -58,7 +85,7 @@ class CommonButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _resolveColor(context);
+    final color = _resolveColor(Theme.of(context).colorScheme);
 
     return InkWell(
       highlightColor: color.withAlpha(75),
@@ -89,14 +116,17 @@ class CommonButton extends StatelessWidget {
     );
   }
 
-  Color _resolveColor(BuildContext context) {
-    if (backgroundColor != null) {
-      return backgroundColor!;
+  Color _resolveColor(ColorScheme colorScheme) {
+    switch (variant) {
+      case CommonButtonVariant.destructive:
+        return colorScheme.error;
+      // The following two are a bit confusing, see [CommonButtonVariant] docs
+      // for an explanation.
+      case CommonButtonVariant.primary:
+        return colorScheme.secondary;
+      case CommonButtonVariant.standard:
+        return colorScheme.primary;
     }
-
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return isDestructive ? colorScheme.error : colorScheme.primary;
   }
 }
 
