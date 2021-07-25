@@ -7,6 +7,7 @@ import '../../provider/round_data.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
+import '../widget/mode/duration_list_item.dart';
 
 class RoundSummaryPage extends ConsumerWidget {
   const RoundSummaryPage();
@@ -119,8 +120,6 @@ class _RoundsList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final roundData = ref.watch(roundDataNotifierProvider)!;
 
-    final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
-
     return ListView.builder(
       itemCount: roundData.roundDurations.length,
       itemBuilder: (context, index) {
@@ -137,18 +136,10 @@ class _RoundsList extends ConsumerWidget {
           textColor = null;
         }
 
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: onSurfaceColor,
-            child: Text('${index + 1}'),
-          ),
-          title: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: FittedText(
-              formatRoundDuration(roundDuration),
-              color: textColor,
-            ),
-          ),
+        return DurationListItem(
+          ordinal: index + 1,
+          text: formatRoundDuration(roundDuration),
+          textColor: textColor,
         );
       },
     );
