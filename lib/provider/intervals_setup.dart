@@ -13,6 +13,12 @@ class IntervalsSetupNotifier extends StateNotifier<List<Duration>> {
   void reset() {
     state = [];
   }
+
+  void removeInterval(int index) {
+    state = [
+      ...state..removeAt(index),
+    ];
+  }
 }
 
 final intervalsSetupNotifierProvider =

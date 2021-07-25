@@ -35,14 +35,27 @@ class _IntervalsList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final intervals = ref.watch(intervalsSetupNotifierProvider);
 
+    final leaveBehindIndicatorColor = Theme.of(context).colorScheme.error;
+
     return ListView.builder(
       itemCount: intervals.length,
       itemBuilder: (context, index) {
         final interval = intervals[index];
 
-        return DurationListItem(
-          ordinal: index + 1,
-          text: _formatInterval(interval),
+        return Dismissible(
+          key: ObjectKey(interval),
+          background: Container(
+            color: leaveBehindIndicatorColor,
+          ),
+          onDismissed: (direction) {
+            ref
+                .read(intervalsSetupNotifierProvider.notifier)
+                .removeInterval(index);
+          },
+          child: DurationListItem(
+            ordinal: index + 1,
+            text: _formatInterval(interval),
+          ),
         );
       },
     );
