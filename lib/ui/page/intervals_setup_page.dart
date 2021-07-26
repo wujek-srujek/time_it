@@ -37,8 +37,13 @@ class _IntervalsList extends ConsumerWidget {
 
     final leaveBehindIndicatorColor = Theme.of(context).colorScheme.error;
 
-    return ListView.builder(
+    return ReorderableListView.builder(
       itemCount: intervals.length,
+      onReorder: (oldIndex, newIndex) {
+        ref
+            .read(intervalsSetupNotifierProvider.notifier)
+            .moveInterval(oldIndex: oldIndex, newIndex: newIndex);
+      },
       itemBuilder: (context, index) {
         final interval = intervals[index];
 

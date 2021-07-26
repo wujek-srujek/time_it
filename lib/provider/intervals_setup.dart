@@ -19,6 +19,17 @@ class IntervalsSetupNotifier extends StateNotifier<List<Duration>> {
       ...state..removeAt(index),
     ];
   }
+
+  void moveInterval({
+    required int oldIndex,
+    required int newIndex,
+  }) {
+    final newIntervals = [...state];
+    final movedInterval = newIntervals.removeAt(oldIndex);
+    final insertionIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    newIntervals.insert(insertionIndex, movedInterval);
+    state = newIntervals;
+  }
 }
 
 final intervalsSetupNotifierProvider =
