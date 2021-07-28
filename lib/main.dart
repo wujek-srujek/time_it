@@ -11,15 +11,16 @@ import 'provider/player.dart';
 import 'ui/page/mode_selection_page.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
   await runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    await Firebase.initializeApp();
+
     if (kDebugMode) {
       // Report crashes in release mode only.
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
@@ -29,7 +30,7 @@ Future<void> main() async {
     await Player.init();
 
     runApp(TimeItApp());
-  }, FirebaseCrashlytics.instance.recordError);
+  }, (error, stack) => FirebaseCrashlytics.instance.recordError(error, stack));
 }
 
 class TimeItApp extends StatelessWidget {
