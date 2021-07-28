@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../provider/timer.dart';
+import '../../util/timer_widget_ref_x.dart';
 import '../common/common_features.dart';
 import '../common/fitted_text.dart';
 import 'mode_widget.dart';
@@ -15,7 +16,7 @@ class TimerWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timerStatus = ref.watch(timerStatusProvider);
+    final timerStatus = ref.watchTimerStatus();
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;

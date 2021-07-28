@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../provider/round_data.dart';
 import '../../../provider/timer.dart';
 import '../../page/round_summary_page.dart';
+import '../../util/timer_widget_ref_x.dart';
 import '../common/activation.dart';
 import '../common/common_button.dart';
 
@@ -36,7 +37,7 @@ class RestartMenuButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isCompleted = ref.watch(timerStatusProvider) == TimerStatus.completed;
+    final isCompleted = ref.watchTimerStatus() == TimerStatus.completed;
 
     return CommonButton.safetyCheck(
       safetyCheck: () => isCompleted,

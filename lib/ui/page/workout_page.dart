@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/timer.dart';
+import '../util/timer_widget_ref_x.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
@@ -50,15 +51,14 @@ class _WorkoutPageState extends State<WorkoutPage>
     return PageScaffold(
       child: Consumer(
         builder: (context, ref, child) {
-          ref.listen(timerStatusProvider, (timerStatus) {
+          ref.listenTimerStatus((timerStatus) {
             final isRunning = timerStatus == TimerStatus.running;
             _animationController.animateTo(
               isRunning ? 1 : _smallerMainBodyScale,
             );
           });
 
-          final isCompleted =
-              ref.watch(timerStatusProvider) == TimerStatus.completed;
+          final isCompleted = ref.watchTimerStatus() == TimerStatus.completed;
 
           return WillPopScope(
             // No idea why this is still broken and undocumented, but we need
@@ -109,7 +109,7 @@ class _WorkoutMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        final isRunning = ref.watch(timerStatusProvider) == TimerStatus.running;
+        final isRunning = ref.watchTimerStatus() == TimerStatus.running;
 
         return Activation(
           isActive: !isRunning,
@@ -132,7 +132,7 @@ class _GoBackMenuButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isCompleted = ref.watch(timerStatusProvider) == TimerStatus.completed;
+    final isCompleted = ref.watchTimerStatus() == TimerStatus.completed;
 
     return CommonButton.safetyCheck(
       safetyCheck: () => isCompleted,
