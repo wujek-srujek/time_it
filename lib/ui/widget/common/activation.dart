@@ -11,17 +11,19 @@ import 'common_features.dart';
 /// [animationDuration] is used for the opacity animation.
 class Activation extends StatelessWidget {
   final bool isActive;
+  final double inactiveOpacity;
   final Widget child;
 
   const Activation({
     required this.isActive,
+    this.inactiveOpacity = 0,
     required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
     return AnimatedOpacity(
-      opacity: isActive ? 1 : 0,
+      opacity: isActive ? 1 : inactiveOpacity,
       duration: animationDuration,
       child: IgnorePointer(
         ignoring: !isActive,
