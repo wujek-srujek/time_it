@@ -60,9 +60,7 @@ class _IntervalTextWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ongoingDefinition = ref.watch(
-      _safeOngoingIntervalDefinitionProvider,
-    );
+    final ongoingDefinition = ref.watchOngoingDefinition();
 
     final textColor = ongoingDefinition.isNotEmpty
         ? Theme.of(context).colorScheme.primary
@@ -195,9 +193,7 @@ class _InputCompletedButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinition = ref.watch(
-      _safeOngoingIntervalDefinitionProvider,
-    );
+    final intervalDefinition = ref.watchOngoingDefinition();
 
     final delegate = ModalRoute.of(context)!.settings.arguments!
         as OnIntervalInputCompletedDelegate;
@@ -236,13 +232,17 @@ extension _OngoingIntervalDefinitionX on OngoingIntervalDefinition {
   bool get isNotEmpty => this is! _UnsetIntervalDefinition;
 }
 
-final _safeOngoingIntervalDefinitionProvider =
-    Provider.autoDispose<OngoingIntervalDefinition>(
-  (ref) {
-    final ongoingDefinition = ref.watch(
-      intervalInputNotifierProvider.select((state) => state.ongoingDefinition),
-    );
+/// **Note**: this extension is pretty much a workaround for
+/// https://github.com/rrousselGit/river_pod/issues/648 and should be replaced
+/// with a standard and recommended solution once fixed.
 
-    return ongoingDefinition ?? const _UnsetIntervalDefinition();
-  },
+extension _OngoingDefinitiontWidgetRefX on WidgetRef {
+  OngoingIntervalDefinition watchOngoingDefinition() {
+    return watch(_ongoingDefinitionSelector) ??
+        const _UnsetIntervalDefinition();
+  }
+}
+
+final _ongoingDefinitionSelector = intervalInputNotifierProvider.select(
+  (state) => state.ongoingDefinition,
 );
