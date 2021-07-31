@@ -22,24 +22,10 @@ class ModeSelectionPage extends StatelessWidget {
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _ModeButton(
-                modeName: 'AMRAP',
-                targetPage: const IntervalInputPage(),
-                arguments: _amrapIntervalInputCompletedDelegate(context),
-              ),
-              const _ModeButton(
-                modeName: 'Stopwatch',
-                targetPage: WorkoutPage(
-                  topWidget: RoundsWidget(),
-                  bottomWidget: StopwatchWidget(),
-                  menuItems: [
-                    RestartMenuButton(),
-                    RoundSummaryMenuButton(),
-                  ],
-                ),
-              ),
-              const Expanded(
+            children: const [
+              _AmrapModeButton(),
+              _StopwatchModeButton(),
+              Expanded(
                 flex: 2,
                 child: SizedBox.shrink(),
               ),
@@ -89,6 +75,61 @@ class _ModeButton extends StatelessWidget {
   }
 }
 
+// In this mode, a single interval is defined and the workout is finished when
+// it completes. `intervalsSetupNotifierProvider` (used internally by
+// `timerNotifierProvider` to get the intervals) is short-lived and created when
+// the sole interval is added in `IntervalInputPage`, right before the workout
+// page is pushed (see the callback below), and disposed when coming back.
+class _AmrapModeButton extends StatelessWidget {
+  const _AmrapModeButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModeButton(
+      modeName: 'AMRAP',
+      targetPage: const IntervalInputPage(),
+      arguments: OnIntervalInputCompletedDelegate(
+        icon: Icons.play_arrow_rounded,
+        callback: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => const WorkoutPage(
+                topWidget: RoundsWidget(),
+                bottomWidget: CountdownTimerWidget(),
+                menuItems: [
+                  RestartMenuButton(),
+                  RoundSummaryMenuButton(),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// In this mode, there is no interval defined, the timer counts upwards and the
+// workout can only be finished by the user.
+class _StopwatchModeButton extends StatelessWidget {
+  const _StopwatchModeButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _ModeButton(
+      modeName: 'Stopwatch',
+      targetPage: WorkoutPage(
+        topWidget: RoundsWidget(),
+        bottomWidget: StopwatchWidget(),
+        menuItems: [
+          RestartMenuButton(),
+          RoundSummaryMenuButton(),
+        ],
+      ),
+    );
+  }
+}
+
 class _VersionInfo extends StatefulWidget {
   const _VersionInfo();
 
@@ -125,24 +166,3 @@ class _VersionInfoState extends State<_VersionInfo> {
     );
   }
 }
-
-OnIntervalInputCompletedDelegate _amrapIntervalInputCompletedDelegate(
-  BuildContext context,
-) =>
-    OnIntervalInputCompletedDelegate(
-      icon: Icons.play_arrow_rounded,
-      callback: () {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (context) => const WorkoutPage(
-              topWidget: RoundsWidget(),
-              bottomWidget: CountdownTimerWidget(),
-              menuItems: [
-                RestartMenuButton(),
-                RoundSummaryMenuButton(),
-              ],
-            ),
-          ),
-        );
-      },
-    );
