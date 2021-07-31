@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
 import '../util/ticker.dart';
-import 'interval_input.dart';
+import 'intervals_setup.dart';
 import 'keep_awake.dart';
 import 'player.dart';
 
@@ -183,7 +183,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
-    final intervals = ref.watch(intervalInputNotifierProvider).allIntervals;
+    final intervals = ref.watch(intervalsSetupNotifierProvider);
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 

@@ -26,36 +26,14 @@ class OngoingIntervalDefinition {
       );
 }
 
-@immutable
-class IntervalInputState {
-  final OngoingIntervalDefinition? ongoingDefinition;
-  final List<Duration> intervals;
-
-  const IntervalInputState({
-    required this.ongoingDefinition,
-    required this.intervals,
-  });
-
-  const IntervalInputState._initial()
-      : this(
-          ongoingDefinition: null,
-          intervals: const [],
-        );
-
-  List<Duration> get allIntervals => [
-        ...intervals,
-        if (ongoingDefinition != null) ongoingDefinition!.toDuration(),
-      ];
-}
-
-class IntervalInputNotifier extends StateNotifier<IntervalInputState> {
+class IntervalInputNotifier extends StateNotifier<OngoingIntervalDefinition?> {
   final List<int> _input;
   int _digitCount;
 
   IntervalInputNotifier()
       : _digitCount = 0,
         _input = List.filled(6, 0),
-        super(const IntervalInputState._initial());
+        super(null);
 
   void addDigit(int digit) {
     if (_digitCount == 0 && digit == 0) {
@@ -64,7 +42,7 @@ class IntervalInputNotifier extends StateNotifier<IntervalInputState> {
     }
 
     if (_digitCount < _input.length) {
-      _updateInput(() {
+      _update(() {
         // Traverse the input and move the digits by one spot to the left to
         // make space for the new one. Only relevant parts of the input are
         // considered.
@@ -80,7 +58,7 @@ class IntervalInputNotifier extends StateNotifier<IntervalInputState> {
 
   void deleteLastDigit() {
     if (_digitCount > 0) {
-      _updateInput(() {
+      _update(() {
         // Traverse the input in reverse and move the digits by one spot to the
         // right to delete the last one. Only relevant parts of the input are
         // considered.
@@ -96,21 +74,8 @@ class IntervalInputNotifier extends StateNotifier<IntervalInputState> {
 
   void resetOngoingDefinition() {
     if (_digitCount > 0) {
-      _updateInput(_resetInput);
+      _update(_resetInput);
     }
-  }
-
-  void completeOngoingDefinition() {
-    assert(state.ongoingDefinition != null);
-
-    _resetInput();
-    state = IntervalInputState(
-      ongoingDefinition: null,
-      intervals: [
-        ...state.intervals,
-        state.ongoingDefinition!.toDuration(),
-      ],
-    );
   }
 
   void _resetInput() {
@@ -121,23 +86,20 @@ class IntervalInputNotifier extends StateNotifier<IntervalInputState> {
     _digitCount = 0;
   }
 
-  void _updateInput(void Function() operations) {
+  void _update(void Function() operations) {
     operations();
 
-    state = IntervalInputState(
-      ongoingDefinition: _digitCount > 0
-          ? OngoingIntervalDefinition(
-              hours: _input[0] * 10 + _input[1],
-              minutes: _input[2] * 10 + _input[3],
-              seconds: _input[4] * 10 + _input[5],
-            )
-          : null,
-      intervals: state.intervals,
-    );
+    state = _digitCount > 0
+        ? OngoingIntervalDefinition(
+            hours: _input[0] * 10 + _input[1],
+            minutes: _input[2] * 10 + _input[3],
+            seconds: _input[4] * 10 + _input[5],
+          )
+        : null;
   }
 }
 
 final intervalInputNotifierProvider = StateNotifierProvider.autoDispose<
-    IntervalInputNotifier, IntervalInputState>(
+    IntervalInputNotifier, OngoingIntervalDefinition?>(
   (ref) => IntervalInputNotifier(),
 );

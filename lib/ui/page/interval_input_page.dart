@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/interval_input.dart';
+import '../../provider/intervals_setup.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
@@ -201,7 +202,13 @@ class _InputCompletedButton extends ConsumerWidget {
     return Activation(
       isActive: intervalDefinition.isNotEmpty,
       child: CommonButton.primary(
-        onTap: delegate.callback,
+        onTap: () {
+          ref
+              .read(intervalsSetupNotifierProvider.notifier)
+              .addInterval(intervalDefinition.toDuration());
+
+          delegate.callback();
+        },
         child: Icon(delegate.icon),
       ),
     );
@@ -238,11 +245,7 @@ extension _OngoingIntervalDefinitionX on OngoingIntervalDefinition {
 
 extension _OngoingDefinitiontWidgetRefX on WidgetRef {
   OngoingIntervalDefinition watchOngoingDefinition() {
-    return watch(_ongoingDefinitionSelector) ??
+    return watch(intervalInputNotifierProvider) ??
         const _UnsetIntervalDefinition();
   }
 }
-
-final _ongoingDefinitionSelector = intervalInputNotifierProvider.select(
-  (state) => state.ongoingDefinition,
-);
