@@ -13,7 +13,7 @@ import '../widget/common/page_scaffold.dart';
 
 class OnIntervalInputCompletedDelegate {
   final IconData icon;
-  final void Function() callback;
+  final void Function(IntervalDefinition) callback;
 
   const OnIntervalInputCompletedDelegate({
     required this.icon,
@@ -202,13 +202,7 @@ class _InputCompletedButton extends ConsumerWidget {
     return Activation(
       isActive: intervalDefinition.isNotEmpty,
       child: CommonButton.primary(
-        onTap: () {
-          ref
-              .read(intervalsSetupNotifierProvider.notifier)
-              .addInterval(intervalDefinition);
-
-          delegate.callback();
-        },
+        onTap: () => delegate.callback(intervalDefinition),
         child: Icon(delegate.icon),
       ),
     );

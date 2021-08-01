@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../provider/intervals_setup.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
@@ -81,17 +83,21 @@ class _ModeButton extends StatelessWidget {
 // `timerNotifierProvider` to get the intervals) is short-lived and created when
 // the sole interval is added in `IntervalInputPage`, right before the workout
 // page is pushed (see the callback below), and disposed when coming back.
-class _AmrapModeButton extends StatelessWidget {
+class _AmrapModeButton extends ConsumerWidget {
   const _AmrapModeButton();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return _ModeButton(
       modeName: 'AMRAP',
       targetPage: const IntervalInputPage(),
       arguments: OnIntervalInputCompletedDelegate(
         icon: Icons.play_arrow_rounded,
-        callback: () {
+        callback: (intervalDefinition) {
+          ref
+              .read(intervalsSetupNotifierProvider.notifier)
+              .addInterval(intervalDefinition);
+
           Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (context) => const WorkoutPage(

@@ -100,7 +100,13 @@ class _ActionsMenu extends ConsumerWidget {
                 settings: RouteSettings(
                   arguments: OnIntervalInputCompletedDelegate(
                     icon: Icons.add_rounded,
-                    callback: () => Navigator.of(context).pop(),
+                    callback: (intervalDefinition) {
+                      ref
+                          .read(intervalsSetupNotifierProvider.notifier)
+                          .addInterval(intervalDefinition);
+
+                      Navigator.of(context).pop();
+                    },
                   ),
                 ),
               ),
