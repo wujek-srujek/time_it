@@ -6,11 +6,13 @@ class DurationListItem extends StatelessWidget {
   final int ordinal;
   final String text;
   final Color? textColor;
+  final void Function()? onTap;
 
   const DurationListItem({
     required this.ordinal,
     required this.text,
     this.textColor,
+    this.onTap,
   }) : assert(ordinal > 0);
 
   @override
@@ -29,6 +31,7 @@ class DurationListItem extends StatelessWidget {
           color: textColor,
         ),
       ),
+      onTap: onTap,
     );
   }
 }
