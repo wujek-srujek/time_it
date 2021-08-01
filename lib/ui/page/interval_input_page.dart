@@ -61,9 +61,9 @@ class _IntervalTextWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ongoingDefinition = ref.watchOngoingDefinition();
+    final intervalDefinition = ref.watchIntervalDefinition();
 
-    final textColor = ongoingDefinition.isNotEmpty
+    final textColor = intervalDefinition.isNotEmpty
         ? Theme.of(context).colorScheme.primary
         : null;
 
@@ -71,27 +71,27 @@ class _IntervalTextWidget extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _UnitTile(
-          ongoingDefinition.hours,
+          intervalDefinition.hours,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          ongoingDefinition.minutes,
+          intervalDefinition.minutes,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          ongoingDefinition.seconds,
+          intervalDefinition.seconds,
           textColor: textColor,
         ),
         GestureDetector(
-          onLongPress: ongoingDefinition.isNotEmpty
+          onLongPress: intervalDefinition.isNotEmpty
               ? () => ref
                   .read(intervalInputNotifierProvider.notifier)
                   .resetOngoingDefinition()
               : null,
           child: IconButton(
-            onPressed: ongoingDefinition.isNotEmpty
+            onPressed: intervalDefinition.isNotEmpty
                 ? () => ref
                     .read(intervalInputNotifierProvider.notifier)
                     .deleteLastDigit()
@@ -194,7 +194,7 @@ class _InputCompletedButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinition = ref.watchOngoingDefinition();
+    final intervalDefinition = ref.watchIntervalDefinition();
 
     final delegate = ModalRoute.of(context)!.settings.arguments!
         as OnIntervalInputCompletedDelegate;
@@ -205,7 +205,7 @@ class _InputCompletedButton extends ConsumerWidget {
         onTap: () {
           ref
               .read(intervalsSetupNotifierProvider.notifier)
-              .addInterval(intervalDefinition.toDuration());
+              .addInterval(intervalDefinition);
 
           delegate.callback();
         },
@@ -219,7 +219,7 @@ class _InputCompletedButton extends ConsumerWidget {
 // so let's use a 'null object'. If not, `null` would need to be dealt with in
 // many places in this library.
 
-class _UnsetIntervalDefinition implements OngoingIntervalDefinition {
+class _UnsetIntervalDefinition implements IntervalDefinition {
   const _UnsetIntervalDefinition();
 
   @override
@@ -235,7 +235,7 @@ class _UnsetIntervalDefinition implements OngoingIntervalDefinition {
   int get seconds => 0;
 }
 
-extension _OngoingIntervalDefinitionX on OngoingIntervalDefinition {
+extension _IntervalDefinitionX on IntervalDefinition {
   bool get isNotEmpty => this is! _UnsetIntervalDefinition;
 }
 
@@ -243,8 +243,8 @@ extension _OngoingIntervalDefinitionX on OngoingIntervalDefinition {
 /// https://github.com/rrousselGit/river_pod/issues/648 and should be replaced
 /// with a standard and recommended solution once fixed.
 
-extension _OngoingDefinitiontWidgetRefX on WidgetRef {
-  OngoingIntervalDefinition watchOngoingDefinition() {
+extension _IntervalDefinitiontWidgetRefX on WidgetRef {
+  IntervalDefinition watchIntervalDefinition() {
     return watch(intervalInputNotifierProvider) ??
         const _UnsetIntervalDefinition();
   }

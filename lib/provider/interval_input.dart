@@ -1,32 +1,10 @@
-import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
-@immutable
-class OngoingIntervalDefinition {
-  final int hours;
-  final int minutes;
-  final int seconds;
+import 'interval_definition.dart';
 
-  const OngoingIntervalDefinition({
-    this.hours = 0,
-    this.minutes = 0,
-    this.seconds = 0,
-  })  : assert(hours >= 0),
-        assert(hours <= 99),
-        assert(minutes >= 0),
-        assert(minutes <= 99),
-        assert(seconds >= 0),
-        assert(seconds <= 99),
-        assert(hours > 0 || minutes > 0 || seconds > 0);
+export 'interval_definition.dart';
 
-  Duration toDuration() => Duration(
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-      );
-}
-
-class IntervalInputNotifier extends StateNotifier<OngoingIntervalDefinition?> {
+class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
   final List<int> _input;
   int _digitCount;
 
@@ -90,7 +68,7 @@ class IntervalInputNotifier extends StateNotifier<OngoingIntervalDefinition?> {
     operations();
 
     state = _digitCount > 0
-        ? OngoingIntervalDefinition(
+        ? IntervalDefinition(
             hours: _input[0] * 10 + _input[1],
             minutes: _input[2] * 10 + _input[3],
             seconds: _input[4] * 10 + _input[5],
@@ -100,6 +78,6 @@ class IntervalInputNotifier extends StateNotifier<OngoingIntervalDefinition?> {
 }
 
 final intervalInputNotifierProvider = StateNotifierProvider.autoDispose<
-    IntervalInputNotifier, OngoingIntervalDefinition?>(
+    IntervalInputNotifier, IntervalDefinition?>(
   (ref) => IntervalInputNotifier(),
 );

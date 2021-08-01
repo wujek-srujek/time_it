@@ -59,7 +59,7 @@ class _IntervalsList extends ConsumerWidget {
           },
           child: DurationListItem(
             ordinal: index + 1,
-            text: _formatInterval(interval),
+            text: _formatInterval(interval.toDuration()),
           ),
         );
       },

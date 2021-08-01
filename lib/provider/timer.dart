@@ -85,8 +85,8 @@ class TimerNotifier extends StateNotifier<TimerState> {
   late Ticker _ticker;
   late StreamSubscription<Ticker> _tickerSubscription;
 
-  TimerNotifier(Duration? interval, this._delegate)
-      : super(TimerState.initial(interval)) {
+  TimerNotifier(IntervalDefinition? interval, this._delegate)
+      : super(TimerState.initial(interval?.toDuration())) {
     _init();
   }
 

@@ -1,9 +1,13 @@
 import 'package:riverpod/riverpod.dart';
 
-class IntervalsSetupNotifier extends StateNotifier<List<Duration>> {
+import 'interval_definition.dart';
+
+export 'interval_definition.dart';
+
+class IntervalsSetupNotifier extends StateNotifier<List<IntervalDefinition>> {
   IntervalsSetupNotifier() : super(const []);
 
-  void addInterval(Duration interval) {
+  void addInterval(IntervalDefinition interval) {
     state = [
       ...state,
       interval,
@@ -32,7 +36,7 @@ class IntervalsSetupNotifier extends StateNotifier<List<Duration>> {
   }
 }
 
-final intervalsSetupNotifierProvider =
-    StateNotifierProvider.autoDispose<IntervalsSetupNotifier, List<Duration>>(
+final intervalsSetupNotifierProvider = StateNotifierProvider.autoDispose<
+    IntervalsSetupNotifier, List<IntervalDefinition>>(
   (ref) => IntervalsSetupNotifier(),
 );
