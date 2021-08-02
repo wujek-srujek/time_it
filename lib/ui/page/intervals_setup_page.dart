@@ -58,6 +58,29 @@ class _IntervalsList extends ConsumerWidget {
           child: DurationListItem(
             ordinal: index + 1,
             text: _formatInterval(intervalDefinition.toDuration()),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => const IntervalInputPage(),
+                  settings: RouteSettings(
+                    arguments: IntervalInputDelegate(
+                      submitIcon: Icons.refresh_rounded,
+                      onSubmit: (intervalDefinition) {
+                        ref
+                            .read(intervalsSetupNotifierProvider.notifier)
+                            .update(
+                              index: index,
+                              intervalDefinition: intervalDefinition,
+                            );
+
+                        Navigator.of(context).pop();
+                      },
+                      initialIntervalDefinition: intervalDefinition,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         );
       },
