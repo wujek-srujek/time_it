@@ -50,7 +50,7 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
     }
   }
 
-  void resetOngoingDefinition() {
+  void reset() {
     if (_digitCount > 0) {
       _update(_resetInput);
     }

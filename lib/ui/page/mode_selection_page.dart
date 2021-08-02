@@ -96,7 +96,7 @@ class _AmrapModeButton extends ConsumerWidget {
         callback: (intervalDefinition) {
           ref
               .read(intervalsSetupNotifierProvider.notifier)
-              .addInterval(intervalDefinition);
+              .add(intervalDefinition);
 
           Navigator.of(context).push(
             MaterialPageRoute<void>(

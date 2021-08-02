@@ -33,33 +33,31 @@ class _IntervalsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervals = ref.watch(intervalsSetupNotifierProvider);
+    final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
 
     final leaveBehindIndicatorColor = Theme.of(context).colorScheme.error;
 
     return ReorderableListView.builder(
-      itemCount: intervals.length,
+      itemCount: intervalDefinitions.length,
       onReorder: (oldIndex, newIndex) {
         ref
             .read(intervalsSetupNotifierProvider.notifier)
-            .moveInterval(oldIndex: oldIndex, newIndex: newIndex);
+            .move(oldIndex: oldIndex, newIndex: newIndex);
       },
       itemBuilder: (context, index) {
-        final interval = intervals[index];
+        final intervalDefinition = intervalDefinitions[index];
 
         return Dismissible(
-          key: ObjectKey(interval),
+          key: ObjectKey(intervalDefinition),
           background: Container(
             color: leaveBehindIndicatorColor,
           ),
           onDismissed: (direction) {
-            ref
-                .read(intervalsSetupNotifierProvider.notifier)
-                .removeInterval(index);
+            ref.read(intervalsSetupNotifierProvider.notifier).remove(index);
           },
           child: DurationListItem(
             ordinal: index + 1,
-            text: _formatInterval(interval.toDuration()),
+            text: _formatInterval(intervalDefinition.toDuration()),
           ),
         );
       },
@@ -78,13 +76,13 @@ class _ActionsMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervals = ref.watch(intervalsSetupNotifierProvider);
+    final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Activation(
-          isActive: intervals.isNotEmpty,
+          isActive: intervalDefinitions.isNotEmpty,
           child: CommonButton.destructive(
             onLongPress: () {
               ref.read(intervalsSetupNotifierProvider.notifier).reset();
@@ -103,7 +101,7 @@ class _ActionsMenu extends ConsumerWidget {
                     callback: (intervalDefinition) {
                       ref
                           .read(intervalsSetupNotifierProvider.notifier)
-                          .addInterval(intervalDefinition);
+                          .add(intervalDefinition);
 
                       Navigator.of(context).pop();
                     },
@@ -115,7 +113,7 @@ class _ActionsMenu extends ConsumerWidget {
           child: const Icon(Icons.add_rounded),
         ),
         Activation(
-          isActive: intervals.isNotEmpty,
+          isActive: intervalDefinitions.isNotEmpty,
           child: const CommonButton.primary(
             child: Icon(Icons.play_arrow_rounded),
           ),

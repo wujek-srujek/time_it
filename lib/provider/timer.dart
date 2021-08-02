@@ -183,14 +183,14 @@ class TimerNotifier extends StateNotifier<TimerState> {
 final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
-    final intervals = ref.watch(intervalsSetupNotifierProvider);
+    final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 
     return TimerNotifier(
       // Use the first one (if it exists) for now. This will change once
       // TimerNotifier supports multiple intervals.
-      intervals.isNotEmpty ? intervals.first : null,
+      intervalDefinitions.isNotEmpty ? intervalDefinitions.first : null,
       _TimerDelegate(
         onStart: keepAwake.enable,
         onStop: keepAwake.disable,

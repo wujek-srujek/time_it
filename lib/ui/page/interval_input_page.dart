@@ -86,9 +86,7 @@ class _IntervalTextWidget extends ConsumerWidget {
         ),
         GestureDetector(
           onLongPress: intervalDefinition.isNotEmpty
-              ? () => ref
-                  .read(intervalInputNotifierProvider.notifier)
-                  .resetOngoingDefinition()
+              ? () => ref.read(intervalInputNotifierProvider.notifier).reset()
               : null,
           child: IconButton(
             onPressed: intervalDefinition.isNotEmpty
