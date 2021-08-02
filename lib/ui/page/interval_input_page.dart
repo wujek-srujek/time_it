@@ -14,16 +14,36 @@ import '../widget/common/page_scaffold.dart';
 class IntervalInputDelegate {
   final IconData submitIcon;
   final void Function(IntervalDefinition) onSubmit;
+  final IntervalDefinition? initialIntervalDefinition;
 
   const IntervalInputDelegate({
     required this.submitIcon,
     required this.onSubmit,
+    this.initialIntervalDefinition,
   });
 }
 
 // Design and behavior influenced by the standard Android Clock app.
-class IntervalInputPage extends StatelessWidget {
+class IntervalInputPage extends ConsumerStatefulWidget {
   const IntervalInputPage();
+
+  @override
+  _IntervalInputPageState createState() => _IntervalInputPageState();
+}
+
+class _IntervalInputPageState extends ConsumerState<IntervalInputPage> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final delegate =
+        ModalRoute.of(context)!.settings.arguments! as IntervalInputDelegate;
+    if (delegate.initialIntervalDefinition != null) {
+      ref
+          .read(intervalInputNotifierProvider.notifier)
+          .override(delegate.initialIntervalDefinition!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

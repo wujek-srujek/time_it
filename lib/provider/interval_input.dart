@@ -56,6 +56,27 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
     }
   }
 
+  void override(IntervalDefinition intervalDefinition) {
+    _update(() {
+      void decompose(int unit, int firstIndex) {
+        if (unit > 0) {
+          _input[firstIndex] = unit ~/ 10;
+          _input[firstIndex + 1] = unit.remainder(10);
+        }
+      }
+
+      decompose(intervalDefinition.hours, 0);
+      decompose(intervalDefinition.minutes, 2);
+      decompose(intervalDefinition.seconds, 4);
+
+      var i = 0;
+      while (i < _input.length && _input[i] == 0) {
+        ++i;
+      }
+      _digitCount = _input.length - i;
+    });
+  }
+
   void _resetInput() {
     for (var i = _input.length - _digitCount; i < _input.length; ++i) {
       _input[i] = 0;
