@@ -96,9 +96,9 @@ class _ActionsMenu extends ConsumerWidget {
               MaterialPageRoute<void>(
                 builder: (context) => const IntervalInputPage(),
                 settings: RouteSettings(
-                  arguments: OnIntervalInputCompletedDelegate(
-                    icon: Icons.add_rounded,
-                    callback: (intervalDefinition) {
+                  arguments: IntervalInputDelegate(
+                    submitIcon: Icons.add_rounded,
+                    onSubmit: (intervalDefinition) {
                       ref
                           .read(intervalsSetupNotifierProvider.notifier)
                           .add(intervalDefinition);

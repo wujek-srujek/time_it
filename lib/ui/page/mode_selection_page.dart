@@ -91,9 +91,9 @@ class _AmrapModeButton extends ConsumerWidget {
     return _ModeButton(
       modeName: 'AMRAP',
       targetPage: const IntervalInputPage(),
-      arguments: OnIntervalInputCompletedDelegate(
-        icon: Icons.play_arrow_rounded,
-        callback: (intervalDefinition) {
+      arguments: IntervalInputDelegate(
+        submitIcon: Icons.play_arrow_rounded,
+        onSubmit: (intervalDefinition) {
           ref
               .read(intervalsSetupNotifierProvider.notifier)
               .add(intervalDefinition);

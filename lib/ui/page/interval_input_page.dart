@@ -11,13 +11,13 @@ import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
 
-class OnIntervalInputCompletedDelegate {
-  final IconData icon;
-  final void Function(IntervalDefinition) callback;
+class IntervalInputDelegate {
+  final IconData submitIcon;
+  final void Function(IntervalDefinition) onSubmit;
 
-  const OnIntervalInputCompletedDelegate({
-    required this.icon,
-    required this.callback,
+  const IntervalInputDelegate({
+    required this.submitIcon,
+    required this.onSubmit,
   });
 }
 
@@ -138,7 +138,7 @@ class _DotsTile extends StatelessWidget {
   }
 }
 
-const _completedButtonMarker = -1;
+const _submitButtonMarker = -1;
 
 class _DialWidget extends ConsumerWidget {
   const _DialWidget();
@@ -147,8 +147,8 @@ class _DialWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     Widget mapper(int? digit) {
       final Widget body;
-      if (digit == _completedButtonMarker) {
-        body = const _InputCompletedButton();
+      if (digit == _submitButtonMarker) {
+        body = const _SubmitButton();
       } else if (digit != null) {
         body = CommonButton(
           onTap: () =>
@@ -181,27 +181,27 @@ class _DialWidget extends ConsumerWidget {
         makeRow([1, 2, 3]),
         makeRow([4, 5, 6]),
         makeRow([7, 8, 9]),
-        makeRow([null, 0, _completedButtonMarker]),
+        makeRow([null, 0, _submitButtonMarker]),
       ],
     );
   }
 }
 
-class _InputCompletedButton extends ConsumerWidget {
-  const _InputCompletedButton();
+class _SubmitButton extends ConsumerWidget {
+  const _SubmitButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final intervalDefinition = ref.watchIntervalDefinition();
 
-    final delegate = ModalRoute.of(context)!.settings.arguments!
-        as OnIntervalInputCompletedDelegate;
+    final delegate =
+        ModalRoute.of(context)!.settings.arguments! as IntervalInputDelegate;
 
     return Activation(
       isActive: intervalDefinition.isNotEmpty,
       child: CommonButton.primary(
-        onTap: () => delegate.callback(intervalDefinition),
-        child: Icon(delegate.icon),
+        onTap: () => delegate.onSubmit(intervalDefinition),
+        child: Icon(delegate.submitIcon),
       ),
     );
   }
