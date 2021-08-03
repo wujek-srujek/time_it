@@ -6,8 +6,12 @@ import '../../util/duration_formatter.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/page_scaffold.dart';
+import '../widget/mode/countdown_timer_widget.dart';
 import '../widget/mode/duration_list_item.dart';
+import '../widget/mode/intervals_widget.dart';
+import '../widget/mode/menu_items.dart';
 import 'interval_input_page.dart';
+import 'workout_page.dart';
 
 class IntervalsSetupPage extends StatelessWidget {
   const IntervalsSetupPage();
@@ -137,8 +141,21 @@ class _ActionsMenu extends ConsumerWidget {
         ),
         Activation(
           isActive: intervalDefinitions.isNotEmpty,
-          child: const CommonButton.primary(
-            child: Icon(Icons.play_arrow_rounded),
+          child: CommonButton.primary(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => const WorkoutPage(
+                    topWidget: IntervalsWidget(),
+                    bottomWidget: CountdownTimerWidget(),
+                    menuItems: [
+                      RestartMenuButton(),
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: const Icon(Icons.play_arrow_rounded),
           ),
         ),
       ],
