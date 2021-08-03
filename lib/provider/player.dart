@@ -11,13 +11,17 @@ import 'package:riverpod/riverpod.dart';
 class Player {
   static Future<void> init() {
     return _audioCache.loadAll([
-      _timerAlarmFileName,
+      _intervalCompletedFileName,
+      _workoutCompletedFileName,
     ]);
   }
 
-  /// Plays a timer expiration sound.
-  void playTimerAlarm() {
-    _play(_timerAlarmFileName);
+  void playIntervalCompleted() {
+    _play(_intervalCompletedFileName);
+  }
+
+  void playWorkoutCompleted() {
+    _play(_workoutCompletedFileName);
   }
 
   void _play(String fileName) {
@@ -27,7 +31,8 @@ class Player {
 
 final playerProvider = Provider((ref) => Player());
 
-const _timerAlarmFileName = 'timer_alarm.mp3';
+const _intervalCompletedFileName = 'interval_completed.mp3';
+const _workoutCompletedFileName = 'workout_completed.mp3';
 
 final _audioCache = AudioCache(
   prefix: 'assets/audio/',

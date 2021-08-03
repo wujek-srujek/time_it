@@ -6,7 +6,9 @@ A simple application to support timing sport activities.
 
 - [stopwatch](images/svg/stopwatch.svg) from
   [here](https://dryicons.com/icon/stopwatch-icon-5725)
-- [timer alarm](assets/audio/timer_alarm.mp3) from
+- [interval_completed](assets/audio/interval_completed.mp3) from
+  [here](https://www.zedge.net/ringtone/fdbdbd2e-46ae-35ef-adaa-f343ef3204c7)
+- [workout_completed](assets/audio/workout_completed.mp3) from
   [here](https://www.zedge.net/ringtone/99a9a13c-2881-32ff-aa8b-84302fb3532c)
 
 # Building

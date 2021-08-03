@@ -74,11 +74,13 @@ class TimerState {
 class _TimerDelegate {
   final void Function() onStart;
   final void Function() onStop;
+  final void Function() onIntervalComplete;
   final void Function() onComplete;
 
   _TimerDelegate({
     required this.onStart,
     required this.onStop,
+    required this.onIntervalComplete,
     required this.onComplete,
   });
 }
@@ -218,7 +220,8 @@ final timerNotifierProvider =
       _TimerDelegate(
         onStart: keepAwake.enable,
         onStop: keepAwake.disable,
-        onComplete: player.playTimerAlarm,
+        onIntervalComplete: player.playIntervalCompleted,
+        onComplete: player.playWorkoutCompleted,
       ),
     )..start();
   },
