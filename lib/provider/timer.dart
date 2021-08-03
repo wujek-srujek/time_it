@@ -14,41 +14,57 @@ enum TimerStatus {
   completed,
 }
 
+class IntervalInfo {
+  final Duration interval;
+  final int ordinal;
+  final int totalCount;
+
+  IntervalInfo({
+    required this.interval,
+    required this.ordinal,
+    required this.totalCount,
+  })  : assert(ordinal >= 1),
+        assert(totalCount >= 1),
+        assert(ordinal <= totalCount);
+}
+
 @immutable
 class TimerState {
-  final Duration? interval;
+  final IntervalInfo? intervalInfo;
   final Duration elapsed;
   final TimerStatus status;
 
   const TimerState._({
-    required this.interval,
+    required this.intervalInfo,
     required this.elapsed,
     required this.status,
   });
 
-  const TimerState.initial(Duration? interval)
+  const TimerState.initial(IntervalInfo? intervalInfo)
       : this._(
-          interval: interval,
+          intervalInfo: intervalInfo,
           elapsed: Duration.zero,
           status: TimerStatus.stopped,
         );
 
   /// Remaining time.
   ///
-  /// It is computed by subtracting [elapsed] from [interval].
+  /// It is computed by subtracting [elapsed] from [IntervalInfo.interval] of
+  /// [intervalInfo].
   ///
-  /// If [interval] is not specified, this will return `null`.
-  Duration? get remaining => interval != null ? interval! - elapsed : null;
+  /// If [intervalInfo] is not specified, this will return `null`.
+  Duration? get remaining =>
+      intervalInfo != null ? intervalInfo!.interval - elapsed : null;
 
   TimerState _update(Duration elapsed, TimerStatus status) {
     // Due to how the underlying platform timer works, 'elapsed' can be greater
-    // than 'interval', but we don't want to deal with it so fix it.
-    if (interval != null && elapsed > interval!) {
-      elapsed = interval!;
+    // than 'intervalInfo.interval' but we don't want to deal with it so fix it.
+    if (intervalInfo != null && elapsed > intervalInfo!.interval) {
+      elapsed = intervalInfo!.interval;
     }
 
     return TimerState._(
-      interval: interval,
+      intervalInfo: intervalInfo,
       elapsed: elapsed,
       status: status,
     );
@@ -86,7 +102,15 @@ class TimerNotifier extends StateNotifier<TimerState> {
   late StreamSubscription<Ticker> _tickerSubscription;
 
   TimerNotifier(IntervalDefinition? interval, this._delegate)
-      : super(TimerState.initial(interval?.toDuration())) {
+      : super(TimerState.initial(
+          interval != null
+              ? IntervalInfo(
+                  interval: interval.toDuration(),
+                  ordinal: 1,
+                  totalCount: 1,
+                )
+              : null,
+        )) {
     _init();
   }
 
@@ -141,7 +165,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
   Duration get accurateElapsed => _ticker.elapsed;
 
   void _init() {
-    _ticker = Ticker(limit: state.interval);
+    _ticker = Ticker(limit: state.intervalInfo?.interval);
     _tickerSubscription = _ticker.stream.listen(
       _tick,
       onDone: _done,
