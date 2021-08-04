@@ -1,11 +1,9 @@
 # TODO
 
+1. Intervals:
+   1. Single interval repetitions.
+   1. Whole setup repetitions.
 1. More modes (current: AMRAP for rounds):
-   1. Intervals:
-      1. Multiple intervals (reorderable list) of different duration possible.
-      1. Possible to define how many times to repeat the interval sequence.
-      1. No round registering like in AMRAP.
-      1. No summary (as no round registering).
    1. EMOM (we don't really do this one):
       1. Basically a single interval with no predefined round count.
       1. With round registering (to allow pacing optimizations).

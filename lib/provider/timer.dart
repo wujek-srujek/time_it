@@ -40,13 +40,6 @@ class TimerState {
     required this.status,
   });
 
-  const TimerState.initial(IntervalInfo? intervalInfo)
-      : this._(
-          intervalInfo: intervalInfo,
-          elapsed: Duration.zero,
-          status: TimerStatus.stopped,
-        );
-
   /// Remaining time.
   ///
   /// It is computed by subtracting [elapsed] from [IntervalInfo.interval] of
@@ -55,34 +48,6 @@ class TimerState {
   /// If [intervalInfo] is not specified, this will return `null`.
   Duration? get remaining =>
       intervalInfo != null ? intervalInfo!.interval - elapsed : null;
-
-  TimerState _update(Duration elapsed, TimerStatus status) {
-    // Due to how the underlying platform timer works, 'elapsed' can be greater
-    // than 'intervalInfo.interval' but we don't want to deal with it so fix it.
-    if (intervalInfo != null && elapsed > intervalInfo!.interval) {
-      elapsed = intervalInfo!.interval;
-    }
-
-    return TimerState._(
-      intervalInfo: intervalInfo,
-      elapsed: elapsed,
-      status: status,
-    );
-  }
-}
-
-class _TimerDelegate {
-  final void Function() onStart;
-  final void Function() onStop;
-  final void Function() onIntervalComplete;
-  final void Function() onComplete;
-
-  _TimerDelegate({
-    required this.onStart,
-    required this.onStop,
-    required this.onIntervalComplete,
-    required this.onComplete,
-  });
 }
 
 // Wakelock integration: the OS must not lock the screen as long as there is a
@@ -98,49 +63,51 @@ class _TimerDelegate {
 class TimerNotifier extends StateNotifier<TimerState> {
   static const _defaultRefreshInterval = Duration(milliseconds: 100);
 
+  final _IntervalsEngine _engine;
   final _TimerDelegate _delegate;
 
   late Ticker _ticker;
   late StreamSubscription<Ticker> _tickerSubscription;
 
-  TimerNotifier(IntervalDefinition? interval, this._delegate)
-      : super(TimerState.initial(
-          interval != null
-              ? IntervalInfo(
-                  interval: interval.toDuration(),
-                  ordinal: 1,
-                  totalCount: 1,
-                )
-              : null,
+  TimerNotifier(this._engine, this._delegate)
+      : super(TimerState._(
+          intervalInfo: _engine.next,
+          elapsed: Duration.zero,
+          status: TimerStatus.stopped,
         )) {
-    _init();
+    _setUp();
   }
 
   void start() {
-    _ticker.start(refreshInterval: _chooseRefreshInterval(_ticker.remaining));
-    _updateState(TimerStatus.running);
+    _start();
 
     _delegate.onStart();
   }
 
   void stop() {
-    _ticker.stop();
-    _updateState(TimerStatus.stopped);
+    _stop();
 
     _delegate.onStop();
   }
 
   void restart() {
-    _tickerSubscription.cancel();
+    _tearDown();
 
-    _init();
+    _engine.reset();
+    state = TimerState._(
+      intervalInfo: _engine.next,
+      elapsed: Duration.zero,
+      status: TimerStatus.running,
+    );
+
+    _setUp();
 
     start();
   }
 
   @override
   void dispose() {
-    _tickerSubscription.cancel();
+    _tearDown();
 
     if (!_ticker.isDisposed) {
       final wasRunning = _ticker.isRunning;
@@ -166,7 +133,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
   /// Calling this method doesn't influence the state in any way.
   Duration get accurateElapsed => _ticker.elapsed;
 
-  void _init() {
+  void _setUp() {
     _ticker = Ticker(limit: state.intervalInfo?.interval);
     _tickerSubscription = _ticker.stream.listen(
       _tick,
@@ -174,19 +141,65 @@ class TimerNotifier extends StateNotifier<TimerState> {
     );
   }
 
+  void _tearDown() {
+    _tickerSubscription.cancel();
+  }
+
+  void _start() {
+    _ticker.start(refreshInterval: _chooseRefreshInterval(_ticker.remaining));
+    _updateState(TimerStatus.running);
+  }
+
+  void _stop() {
+    _ticker.stop();
+    _updateState(TimerStatus.stopped);
+  }
+
   void _tick(Ticker _) {
     _updateState(TimerStatus.running);
   }
 
   void _done() {
-    _updateState(TimerStatus.completed);
+    // Depending on that the engine says, the timer either completes or goes on
+    // to process the next interval.
 
-    _delegate.onStop();
-    _delegate.onComplete();
+    final movedNext = _engine.moveNext();
+    if (movedNext) {
+      _delegate.onIntervalComplete();
+
+      _tearDown();
+
+      state = TimerState._(
+        intervalInfo: _engine.current,
+        elapsed: Duration.zero,
+        status: TimerStatus.running,
+      );
+
+      _setUp();
+
+      _start();
+    } else {
+      _delegate.onStop();
+      _delegate.onComplete();
+
+      _updateState(TimerStatus.completed);
+    }
   }
 
   void _updateState(TimerStatus status) {
-    state = state._update(_ticker.elapsed, status);
+    var elapsed = _ticker.elapsed;
+
+    // Due to how the underlying platform timer works, 'elapsed' can be greater
+    // than 'intervalInfo.interval' but we don't want to deal with it so fix it.
+    if (state.intervalInfo != null && elapsed > state.intervalInfo!.interval) {
+      elapsed = state.intervalInfo!.interval;
+    }
+
+    state = TimerState._(
+      intervalInfo: state.intervalInfo,
+      elapsed: elapsed,
+      status: status,
+    );
   }
 
   Duration _chooseRefreshInterval(Duration? remaining) {
@@ -214,9 +227,7 @@ final timerNotifierProvider =
     final player = ref.watch(playerProvider);
 
     return TimerNotifier(
-      // Use the first one (if it exists) for now. This will change once
-      // TimerNotifier supports multiple intervals.
-      intervalDefinitions.isNotEmpty ? intervalDefinitions.first : null,
+      _IntervalsEngine(intervalDefinitions),
       _TimerDelegate(
         onStart: keepAwake.enable,
         onStop: keepAwake.disable,
@@ -226,3 +237,53 @@ final timerNotifierProvider =
     )..start();
   },
 );
+
+class _TimerDelegate {
+  final void Function() onStart;
+  final void Function() onStop;
+  final void Function() onIntervalComplete;
+  final void Function() onComplete;
+
+  _TimerDelegate({
+    required this.onStart,
+    required this.onStop,
+    required this.onIntervalComplete,
+    required this.onComplete,
+  });
+}
+
+class _IntervalsEngine implements Iterator<IntervalInfo> {
+  final Iterable<IntervalDefinition> _intervalDefinitions;
+  final int _totalCount;
+
+  late Iterator<IntervalDefinition> _iterator;
+  late int _ordinal;
+
+  _IntervalsEngine(this._intervalDefinitions)
+      : _totalCount = _intervalDefinitions.length {
+    reset();
+  }
+
+  @override
+  bool moveNext() {
+    final movedNext = _iterator.moveNext();
+    if (movedNext) {
+      ++_ordinal;
+    }
+    return movedNext;
+  }
+
+  @override
+  IntervalInfo get current => IntervalInfo(
+        interval: _iterator.current.toDuration(),
+        ordinal: _ordinal,
+        totalCount: _totalCount,
+      );
+
+  IntervalInfo? get next => moveNext() ? current : null;
+
+  void reset() {
+    _iterator = _intervalDefinitions.iterator;
+    _ordinal = 0;
+  }
+}
