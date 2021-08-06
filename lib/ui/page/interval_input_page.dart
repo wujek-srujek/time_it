@@ -14,12 +14,12 @@ import '../widget/common/page_scaffold.dart';
 class IntervalInputDelegate {
   final IconData submitIcon;
   final void Function(IntervalDefinition) onSubmit;
-  final IntervalDefinition? initialIntervalDefinition;
+  final IntervalDefinition? prototype;
 
   const IntervalInputDelegate({
     required this.submitIcon,
     required this.onSubmit,
-    this.initialIntervalDefinition,
+    this.prototype,
   });
 }
 
@@ -38,10 +38,10 @@ class _IntervalInputPageState extends ConsumerState<IntervalInputPage> {
 
     final delegate =
         ModalRoute.of(context)!.settings.arguments! as IntervalInputDelegate;
-    if (delegate.initialIntervalDefinition != null) {
+    if (delegate.prototype != null) {
       ref
           .read(intervalInputNotifierProvider.notifier)
-          .override(delegate.initialIntervalDefinition!);
+          .override(delegate.prototype!);
     }
   }
 
@@ -227,24 +227,12 @@ class _SubmitButton extends ConsumerWidget {
   }
 }
 
-// [OngoingIntervalDefinition] may be `null` in [intervalInputNotifierProvider]
-// so let's use a 'null object'. If not, `null` would need to be dealt with in
-// many places in this library.
+// [IntervalDefinition] may be `null` in [intervalInputNotifierProvider] so
+// let's use a 'null object'. If not, `null` would need to be dealt with in many
+// places in this library.
 
-class _UnsetIntervalDefinition implements IntervalDefinition {
+class _UnsetIntervalDefinition extends IntervalDefinition {
   const _UnsetIntervalDefinition();
-
-  @override
-  Duration toDuration() => throw UnimplementedError('must not be called');
-
-  @override
-  int get hours => 0;
-
-  @override
-  int get minutes => 0;
-
-  @override
-  int get seconds => 0;
 }
 
 extension _IntervalDefinitionX on IntervalDefinition {

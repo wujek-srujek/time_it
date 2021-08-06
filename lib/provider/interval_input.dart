@@ -7,10 +7,12 @@ export 'interval_definition.dart';
 class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
   final List<int> _input;
   int _digitCount;
+  IntervalDefinition _prototype;
 
   IntervalInputNotifier()
       : _digitCount = 0,
         _input = List.filled(6, 0),
+        _prototype = const IntervalDefinition(),
         super(null);
 
   void addDigit(int digit) {
@@ -56,7 +58,7 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
     }
   }
 
-  void override(IntervalDefinition intervalDefinition) {
+  void override(IntervalDefinition prototype) {
     _update(() {
       void decompose(int unit, int firstIndex) {
         if (unit > 0) {
@@ -65,15 +67,17 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
         }
       }
 
-      decompose(intervalDefinition.hours, 0);
-      decompose(intervalDefinition.minutes, 2);
-      decompose(intervalDefinition.seconds, 4);
+      decompose(prototype.hours, 0);
+      decompose(prototype.minutes, 2);
+      decompose(prototype.seconds, 4);
 
       var i = 0;
       while (i < _input.length && _input[i] == 0) {
         ++i;
       }
       _digitCount = _input.length - i;
+
+      _prototype = prototype;
     });
   }
 
@@ -89,10 +93,10 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition?> {
     operations();
 
     state = _digitCount > 0
-        ? IntervalDefinition(
-            hours: _input[0] * 10 + _input[1],
-            minutes: _input[2] * 10 + _input[3],
-            seconds: _input[4] * 10 + _input[5],
+        ? _prototype.copyWith(
+            newHours: _input[0] * 10 + _input[1],
+            newMinutes: _input[2] * 10 + _input[3],
+            newSeconds: _input[4] * 10 + _input[5],
           )
         : null;
   }

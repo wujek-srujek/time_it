@@ -15,8 +15,18 @@ class IntervalDefinition {
         assert(minutes >= 0),
         assert(minutes <= 99),
         assert(seconds >= 0),
-        assert(seconds <= 99),
-        assert(hours > 0 || minutes > 0 || seconds > 0);
+        assert(seconds <= 99);
+
+  IntervalDefinition copyWith({
+    int? newHours,
+    int? newMinutes,
+    int? newSeconds,
+  }) =>
+      IntervalDefinition(
+        hours: newHours ?? hours,
+        minutes: newMinutes ?? minutes,
+        seconds: newSeconds ?? seconds,
+      );
 
   Duration toDuration() => Duration(
         hours: hours,

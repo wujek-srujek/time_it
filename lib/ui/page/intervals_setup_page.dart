@@ -87,7 +87,7 @@ class _IntervalsList extends ConsumerWidget {
 
                         Navigator.of(context).pop();
                       },
-                      initialIntervalDefinition: intervalDefinition,
+                      prototype: intervalDefinition,
                     ),
                   ),
                 ),
