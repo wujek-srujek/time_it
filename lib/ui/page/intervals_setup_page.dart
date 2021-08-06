@@ -5,9 +5,10 @@ import '../../provider/intervals_setup.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
+import '../widget/common/fitted_text.dart';
+import '../widget/common/ordered_avatar.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/countdown_timer_widget.dart';
-import '../widget/mode/duration_list_item.dart';
 import '../widget/mode/intervals_widget.dart';
 import '../widget/mode/menu_items.dart';
 import 'interval_input_page.dart';
@@ -59,9 +60,16 @@ class _IntervalsList extends ConsumerWidget {
           onDismissed: (direction) {
             ref.read(intervalsSetupNotifierProvider.notifier).remove(index);
           },
-          child: DurationListItem(
-            ordinal: index + 1,
-            text: _formatInterval(intervalDefinition.toDuration()),
+          child: ListTile(
+            leading: OrderedAvatar(
+              ordinal: index + 1,
+            ),
+            title: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: FittedText(
+                _formatInterval(intervalDefinition.toDuration()),
+              ),
+            ),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(

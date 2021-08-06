@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../provider/round_data.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/fitted_text.dart';
+import '../widget/common/ordered_avatar.dart';
 import '../widget/common/page_scaffold.dart';
-import '../widget/mode/duration_list_item.dart';
 
 class RoundSummaryPage extends ConsumerWidget {
   const RoundSummaryPage();
@@ -136,10 +136,17 @@ class _RoundsList extends ConsumerWidget {
           textColor = null;
         }
 
-        return DurationListItem(
-          ordinal: index + 1,
-          text: formatRoundDuration(roundDuration),
-          textColor: textColor,
+        return ListTile(
+          leading: OrderedAvatar(
+            ordinal: index + 1,
+          ),
+          title: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: FittedText(
+              formatRoundDuration(roundDuration),
+              color: textColor,
+            ),
+          ),
         );
       },
     );
