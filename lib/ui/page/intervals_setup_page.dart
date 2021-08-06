@@ -5,12 +5,14 @@ import '../../provider/intervals_setup.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
+import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/ordered_avatar.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/countdown_timer_widget.dart';
 import '../widget/mode/intervals_widget.dart';
 import '../widget/mode/menu_items.dart';
+import '../widget/mode/repetitions_picker.dart';
 import 'interval_input_page.dart';
 import 'workout_page.dart';
 
@@ -81,36 +83,91 @@ class _IntervalListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final orderedAvatar = OrderedAvatar(
+      ordinal: index + 1,
+    );
     final formattedInterval = _formatInterval(intervalDefinition.toDuration());
 
     return ListTile(
-      leading: OrderedAvatar(
-        ordinal: index + 1,
-      ),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (context) => const IntervalInputPage(),
-            settings: RouteSettings(
-              arguments: IntervalInputDelegate(
-                submitIcon: Icons.refresh_rounded,
-                onSubmit: (intervalDefinition) {
-                  ref.read(intervalsSetupNotifierProvider.notifier).update(
-                        index: index,
-                        intervalDefinition: intervalDefinition,
-                      );
+      leading: orderedAvatar,
+      title: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: InkWell(
+              borderRadius: borderRadius,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (context) => const IntervalInputPage(),
+                    settings: RouteSettings(
+                      arguments: IntervalInputDelegate(
+                        submitIcon: Icons.refresh_rounded,
+                        onSubmit: (intervalDefinition) {
+                          ref
+                              .read(intervalsSetupNotifierProvider.notifier)
+                              .update(
+                                index: index,
+                                intervalDefinition: intervalDefinition,
+                              );
 
-                  Navigator.of(context).pop();
-                },
-                prototype: intervalDefinition,
+                          Navigator.of(context).pop();
+                        },
+                        prototype: intervalDefinition,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: FittedText(formattedInterval),
               ),
             ),
           ),
-        );
-      },
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: FittedText(formattedInterval),
+          Expanded(
+            child: InkWell(
+              borderRadius: borderRadius,
+              onTap: () async {
+                final repetitions = await showDialog<int>(
+                  context: context,
+                  builder: (context) => _RepetitionsDialog(
+                    repetitions: intervalDefinition.repetitions,
+                    subject: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          orderedAvatar,
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 32),
+                              child: FittedText(formattedInterval),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+
+                if (repetitions != null &&
+                    repetitions != intervalDefinition.repetitions) {
+                  ref.read(intervalsSetupNotifierProvider.notifier).update(
+                        index: index,
+                        intervalDefinition: intervalDefinition.copyWith(
+                          newRepetitions: repetitions,
+                        ),
+                      );
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: FittedText('×${intervalDefinition.repetitions}'),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -181,6 +238,62 @@ class _ActionsMenu extends ConsumerWidget {
             },
             child: const Icon(Icons.play_arrow_rounded),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RepetitionsDialog extends StatefulWidget {
+  final int repetitions;
+  final Widget subject;
+
+  const _RepetitionsDialog({
+    required this.repetitions,
+    required this.subject,
+  });
+
+  @override
+  _RepetitionsDialogState createState() => _RepetitionsDialogState();
+}
+
+class _RepetitionsDialogState extends State<_RepetitionsDialog> {
+  late int _repetitions;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _repetitions = widget.repetitions;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+      ),
+      actionsPadding: const EdgeInsets.all(16),
+      title: const Text('Choose repetitions'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          widget.subject,
+          SizedBox(
+            height: screenHeight / 6,
+            child: RepetitionsPicker(
+              value: _repetitions,
+              onChanged: (value) => setState(() => _repetitions = value),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        CommonButton.primary(
+          onTap: () => Navigator.of(context).pop(_repetitions),
+          child: const Icon(Icons.check_rounded),
         ),
       ],
     );
