@@ -60,42 +60,58 @@ class _IntervalsList extends ConsumerWidget {
           onDismissed: (direction) {
             ref.read(intervalsSetupNotifierProvider.notifier).remove(index);
           },
-          child: ListTile(
-            leading: OrderedAvatar(
-              ordinal: index + 1,
-            ),
-            title: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 48),
-              child: FittedText(
-                _formatInterval(intervalDefinition.toDuration()),
-              ),
-            ),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (context) => const IntervalInputPage(),
-                  settings: RouteSettings(
-                    arguments: IntervalInputDelegate(
-                      submitIcon: Icons.refresh_rounded,
-                      onSubmit: (intervalDefinition) {
-                        ref
-                            .read(intervalsSetupNotifierProvider.notifier)
-                            .update(
-                              index: index,
-                              intervalDefinition: intervalDefinition,
-                            );
-
-                        Navigator.of(context).pop();
-                      },
-                      prototype: intervalDefinition,
-                    ),
-                  ),
-                ),
-              );
-            },
+          child: _IntervalListTile(
+            index: index,
+            intervalDefinition: intervalDefinition,
           ),
         );
       },
+    );
+  }
+}
+
+class _IntervalListTile extends ConsumerWidget {
+  final int index;
+  final IntervalDefinition intervalDefinition;
+
+  const _IntervalListTile({
+    required this.index,
+    required this.intervalDefinition,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final formattedInterval = _formatInterval(intervalDefinition.toDuration());
+
+    return ListTile(
+      leading: OrderedAvatar(
+        ordinal: index + 1,
+      ),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (context) => const IntervalInputPage(),
+            settings: RouteSettings(
+              arguments: IntervalInputDelegate(
+                submitIcon: Icons.refresh_rounded,
+                onSubmit: (intervalDefinition) {
+                  ref.read(intervalsSetupNotifierProvider.notifier).update(
+                        index: index,
+                        intervalDefinition: intervalDefinition,
+                      );
+
+                  Navigator.of(context).pop();
+                },
+                prototype: intervalDefinition,
+              ),
+            ),
+          ),
+        );
+      },
+      title: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: FittedText(formattedInterval),
+      ),
     );
   }
 }
