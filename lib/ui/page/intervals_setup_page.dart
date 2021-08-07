@@ -47,7 +47,7 @@ class _IntervalsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
+    final intervalDefinitions = ref.watchIntervalDefinitions();
 
     final leaveBehindIndicatorColor = Theme.of(context).colorScheme.error;
 
@@ -191,7 +191,7 @@ class _ResetButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
+    final intervalDefinitions = ref.watchIntervalDefinitions();
 
     return Activation(
       isActive: intervalDefinitions.isNotEmpty,
@@ -240,7 +240,7 @@ class _StartButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
+    final intervalDefinitions = ref.watchIntervalDefinitions();
 
     return Activation(
       isActive: intervalDefinitions.isNotEmpty,
@@ -317,5 +317,17 @@ class _RepetitionsDialogState extends State<_RepetitionsDialog> {
         ),
       ],
     );
+  }
+}
+
+/// **Note**: this extension is pretty much a workaround for
+/// https://github.com/rrousselGit/river_pod/issues/648 and should be replaced
+/// with a standard and recommended solution once fixed.
+
+extension _IntervalsSequenceWidgetRefX on WidgetRef {
+  List<IntervalDefinition> watchIntervalDefinitions() {
+    return watch(intervalsSetupNotifierProvider.select(
+      (state) => state.intervalDefinitions,
+    ));
   }
 }
