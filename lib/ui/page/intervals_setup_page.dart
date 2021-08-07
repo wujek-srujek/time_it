@@ -24,11 +24,18 @@ class IntervalsSetupPage extends StatelessWidget {
     return PageScaffold(
       title: 'Define intervals',
       child: Column(
-        children: const [
-          Expanded(
+        children: [
+          const Expanded(
             child: _IntervalsList(),
           ),
-          _ActionsMenu(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              _ResetButton(),
+              _AddButton(),
+              _StartButton(),
+            ],
+          ),
         ],
       ),
     );
@@ -179,67 +186,80 @@ String _formatInterval(Duration interval) => formatDuration(
       forceComponentPadding: TimeComponent.minute,
     );
 
-class _ActionsMenu extends ConsumerWidget {
-  const _ActionsMenu();
+class _ResetButton extends ConsumerWidget {
+  const _ResetButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Activation(
-          isActive: intervalDefinitions.isNotEmpty,
-          child: CommonButton.destructive(
-            onLongPress: () {
-              ref.read(intervalsSetupNotifierProvider.notifier).reset();
-            },
-            child: const Icon(Icons.clear_all),
-          ),
-        ),
-        CommonButton(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (context) => const IntervalInputPage(),
-                settings: RouteSettings(
-                  arguments: IntervalInputDelegate(
-                    submitIcon: Icons.add_rounded,
-                    onSubmit: (intervalDefinition) {
-                      ref
-                          .read(intervalsSetupNotifierProvider.notifier)
-                          .add(intervalDefinition);
+    return Activation(
+      isActive: intervalDefinitions.isNotEmpty,
+      child: CommonButton.destructive(
+        onLongPress: () {
+          ref.read(intervalsSetupNotifierProvider.notifier).reset();
+        },
+        child: const Icon(Icons.clear_all),
+      ),
+    );
+  }
+}
 
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
+class _AddButton extends ConsumerWidget {
+  const _AddButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonButton(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (context) => const IntervalInputPage(),
+            settings: RouteSettings(
+              arguments: IntervalInputDelegate(
+                submitIcon: Icons.add_rounded,
+                onSubmit: (intervalDefinition) {
+                  ref
+                      .read(intervalsSetupNotifierProvider.notifier)
+                      .add(intervalDefinition);
+
+                  Navigator.of(context).pop();
+                },
               ),
-            );
-          },
-          child: const Icon(Icons.add_rounded),
-        ),
-        Activation(
-          isActive: intervalDefinitions.isNotEmpty,
-          child: CommonButton.primary(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (context) => const WorkoutPage(
-                    topWidget: IntervalsWidget(),
-                    bottomWidget: CountdownTimerWidget(),
-                    menuItems: [
-                      RestartMenuButton(),
-                    ],
-                  ),
-                ),
-              );
-            },
-            child: const Icon(Icons.play_arrow_rounded),
+            ),
           ),
-        ),
-      ],
+        );
+      },
+      child: const Icon(Icons.add_rounded),
+    );
+  }
+}
+
+class _StartButton extends ConsumerWidget {
+  const _StartButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final intervalDefinitions = ref.watch(intervalsSetupNotifierProvider);
+
+    return Activation(
+      isActive: intervalDefinitions.isNotEmpty,
+      child: CommonButton.primary(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => const WorkoutPage(
+                topWidget: IntervalsWidget(),
+                bottomWidget: CountdownTimerWidget(),
+                menuItems: [
+                  RestartMenuButton(),
+                ],
+              ),
+            ),
+          );
+        },
+        child: const Icon(Icons.play_arrow_rounded),
+      ),
     );
   }
 }
