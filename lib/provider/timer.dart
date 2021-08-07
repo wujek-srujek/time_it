@@ -257,19 +257,32 @@ class _IntervalsEngine implements Iterator<IntervalInfo> {
   final int _totalCount;
 
   late Iterator<IntervalDefinition> _iterator;
+  late int _currentRepetitionsRemaining;
   late int _ordinal;
 
   _IntervalsEngine(this._intervalDefinitions)
-      : _totalCount = _intervalDefinitions.length {
+      : _totalCount = _intervalDefinitions.fold(
+          0,
+          (previousValue, element) => previousValue + element.repetitions,
+        ) {
     reset();
   }
 
   @override
   bool moveNext() {
+    if (_currentRepetitionsRemaining > 0) {
+      --_currentRepetitionsRemaining;
+      ++_ordinal;
+
+      return true;
+    }
+
     final movedNext = _iterator.moveNext();
     if (movedNext) {
+      _currentRepetitionsRemaining = _iterator.current.repetitions - 1;
       ++_ordinal;
     }
+
     return movedNext;
   }
 
@@ -284,6 +297,7 @@ class _IntervalsEngine implements Iterator<IntervalInfo> {
 
   void reset() {
     _iterator = _intervalDefinitions.iterator;
+    _currentRepetitionsRemaining = 0;
     _ordinal = 0;
   }
 }
