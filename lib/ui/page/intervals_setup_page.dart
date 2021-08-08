@@ -9,12 +9,9 @@ import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/ordered_avatar.dart';
 import '../widget/common/page_scaffold.dart';
-import '../widget/mode/countdown_timer_widget.dart';
-import '../widget/mode/intervals_widget.dart';
-import '../widget/mode/menu_items.dart';
 import '../widget/mode/repetitions_picker.dart';
+import '../workout_lanucher.dart';
 import 'interval_input_page.dart';
-import 'workout_page.dart';
 
 class IntervalsSetupPage extends StatelessWidget {
   const IntervalsSetupPage();
@@ -259,17 +256,7 @@ class _StartButton extends ConsumerWidget {
 
           ref.read(intervalsSetupNotifierProvider.notifier).repeat(repetitions);
 
-          await Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (context) => const WorkoutPage(
-                topWidget: IntervalsWidget(),
-                bottomWidget: CountdownTimerWidget(),
-                menuItems: [
-                  RestartMenuButton(),
-                ],
-              ),
-            ),
-          );
+          await launchIntervals(context);
         },
         child: const Icon(Icons.play_arrow_rounded),
       ),

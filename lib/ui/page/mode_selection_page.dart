@@ -6,13 +6,9 @@ import '../../provider/intervals_setup.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
-import '../widget/mode/countdown_timer_widget.dart';
-import '../widget/mode/menu_items.dart';
-import '../widget/mode/rounds_widget.dart';
-import '../widget/mode/stopwatch_widget.dart';
+import '../workout_lanucher.dart';
 import 'interval_input_page.dart';
 import 'intervals_setup_page.dart';
-import 'workout_page.dart';
 
 class ModeSelectionPage extends StatelessWidget {
   const ModeSelectionPage();
@@ -46,13 +42,11 @@ class ModeSelectionPage extends StatelessWidget {
 
 class _ModeButton extends StatelessWidget {
   final String modeName;
-  final Widget targetPage;
-  final Object? arguments;
+  final void Function() onTap;
 
   const _ModeButton({
     required this.modeName,
-    required this.targetPage,
-    this.arguments,
+    required this.onTap,
   });
 
   @override
@@ -61,16 +55,7 @@ class _ModeButton extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         child: CommonButton(
-          onTap: () {
-            Navigator.of(context).push<void>(
-              MaterialPageRoute(
-                builder: (context) => targetPage,
-                settings: RouteSettings(
-                  arguments: arguments,
-                ),
-              ),
-            );
-          },
+          onTap: onTap,
           child: FittedText(modeName),
         ),
       ),
@@ -90,27 +75,22 @@ class _AmrapModeButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _ModeButton(
       modeName: 'AMRAP',
-      targetPage: const IntervalInputPage(),
-      arguments: IntervalInputDelegate(
-        submitIcon: Icons.play_arrow_rounded,
-        onSubmit: (intervalDefinition) {
-          ref
-              .read(intervalsSetupNotifierProvider.notifier)
-              .add(intervalDefinition);
+      onTap: () => Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (context) => const IntervalInputPage(),
+          settings: RouteSettings(
+            arguments: IntervalInputDelegate(
+              submitIcon: Icons.play_arrow_rounded,
+              onSubmit: (intervalDefinition) {
+                ref
+                    .read(intervalsSetupNotifierProvider.notifier)
+                    .add(intervalDefinition);
 
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (context) => const WorkoutPage(
-                topWidget: RoundsWidget(),
-                bottomWidget: CountdownTimerWidget(),
-                menuItems: [
-                  RestartMenuButton(),
-                  RoundSummaryMenuButton(),
-                ],
-              ),
+                launchAmrap(context);
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -123,16 +103,9 @@ class _StopwatchModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _ModeButton(
+    return _ModeButton(
       modeName: 'Stopwatch',
-      targetPage: WorkoutPage(
-        topWidget: RoundsWidget(),
-        bottomWidget: StopwatchWidget(),
-        menuItems: [
-          RestartMenuButton(),
-          RoundSummaryMenuButton(),
-        ],
-      ),
+      onTap: () => launchStopwatch(context),
     );
   }
 }
@@ -146,9 +119,13 @@ class _IntervalsModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _ModeButton(
+    return _ModeButton(
       modeName: 'Intervals',
-      targetPage: IntervalsSetupPage(),
+      onTap: () => Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (context) => const IntervalsSetupPage(),
+        ),
+      ),
     );
   }
 }
