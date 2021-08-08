@@ -240,13 +240,26 @@ class _StartButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinitions = ref.watchIntervalDefinitions();
+    final intervalsSequence = ref.watch(intervalsSetupNotifierProvider);
 
     return Activation(
-      isActive: intervalDefinitions.isNotEmpty,
+      isActive: intervalsSequence.intervalDefinitions.isNotEmpty,
       child: CommonButton.primary(
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          final repetitions = await showDialog<int>(
+            context: context,
+            builder: (context) => _RepetitionsDialog(
+              repetitions: intervalsSequence.repetitions,
+            ),
+          );
+
+          if (repetitions == null) {
+            return;
+          }
+
+          ref.read(intervalsSetupNotifierProvider.notifier).repeat(repetitions);
+
+          await Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (context) => const WorkoutPage(
                 topWidget: IntervalsWidget(),
@@ -266,11 +279,11 @@ class _StartButton extends ConsumerWidget {
 
 class _RepetitionsDialog extends StatefulWidget {
   final int repetitions;
-  final Widget subject;
+  final Widget? subject;
 
   const _RepetitionsDialog({
     required this.repetitions,
-    required this.subject,
+    this.subject,
   });
 
   @override
@@ -300,7 +313,7 @@ class _RepetitionsDialogState extends State<_RepetitionsDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          widget.subject,
+          if (widget.subject != null) widget.subject!,
           SizedBox(
             height: screenHeight / 6,
             child: RepetitionsPicker(

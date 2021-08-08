@@ -12,7 +12,7 @@ class IntervalsSequence {
   const IntervalsSequence({
     this.intervalDefinitions = const [],
     this.repetitions = 1,
-  });
+  }) : assert(repetitions > 0);
 
   IntervalsSequence copyWith({
     List<IntervalDefinition>? newIntervalDefinitions,
