@@ -227,7 +227,7 @@ final timerNotifierProvider =
     final player = ref.watch(playerProvider);
 
     return TimerNotifier(
-      _IntervalsEngine(intervalsSequence.intervalDefinitions),
+      _IntervalsEngine(intervalsSequence),
       _TimerDelegate(
         onStart: keepAwake.enable,
         onStop: keepAwake.disable,
@@ -253,42 +253,38 @@ class _TimerDelegate {
 }
 
 class _IntervalsEngine implements Iterator<IntervalInfo> {
-  final Iterable<IntervalDefinition> _intervalDefinitions;
+  final IntervalsSequence _intervalsSequence;
   final int _totalCount;
 
-  late Iterator<IntervalDefinition> _iterator;
-  late int _currentRepetitionsRemaining;
+  late Iterator<IntervalDefinition> _sequenceRepetitionIterator;
+  late int _repetitionsRemaining;
   late int _ordinal;
 
-  _IntervalsEngine(this._intervalDefinitions)
-      : _totalCount = _intervalDefinitions.fold(
-          0,
-          (previousValue, element) => previousValue + element.repetitions,
-        ) {
+  _IntervalsEngine(this._intervalsSequence)
+      : _totalCount = _intervalsSequence.intervalsCount {
     reset();
   }
 
   @override
   bool moveNext() {
-    if (_currentRepetitionsRemaining > 0) {
-      --_currentRepetitionsRemaining;
+    if (_sequenceRepetitionIterator.moveNext()) {
       ++_ordinal;
 
       return true;
     }
 
-    final movedNext = _iterator.moveNext();
-    if (movedNext) {
-      _currentRepetitionsRemaining = _iterator.current.repetitions - 1;
-      ++_ordinal;
+    if (_repetitionsRemaining == 0) {
+      return false;
     }
 
-    return movedNext;
+    _resetSequenceRepetitionIterator();
+
+    return moveNext();
   }
 
   @override
   IntervalInfo get current => IntervalInfo(
-        interval: _iterator.current.toDuration(),
+        interval: _sequenceRepetitionIterator.current.toDuration(),
         ordinal: _ordinal,
         totalCount: _totalCount,
       );
@@ -296,8 +292,47 @@ class _IntervalsEngine implements Iterator<IntervalInfo> {
   IntervalInfo? get next => moveNext() ? current : null;
 
   void reset() {
-    _iterator = _intervalDefinitions.iterator;
-    _currentRepetitionsRemaining = 0;
+    _repetitionsRemaining = _intervalsSequence.repetitions;
     _ordinal = 0;
+    _resetSequenceRepetitionIterator();
   }
+
+  void _resetSequenceRepetitionIterator() {
+    _sequenceRepetitionIterator = _IntervalsSequenceRepetitionIterator(
+      _intervalsSequence.intervalDefinitions.iterator,
+    );
+    --_repetitionsRemaining;
+  }
+}
+
+/// Iterates over all [IntervalDefinition]s taking repetitions into account.
+///
+/// This essentially performs a single repetition of [IntervalsSequence].
+class _IntervalsSequenceRepetitionIterator
+    implements Iterator<IntervalDefinition> {
+  final Iterator<IntervalDefinition> _iterator;
+
+  int _currentRepetitionsRemaining;
+
+  _IntervalsSequenceRepetitionIterator(this._iterator)
+      : _currentRepetitionsRemaining = 0;
+
+  @override
+  bool moveNext() {
+    if (_currentRepetitionsRemaining > 0) {
+      --_currentRepetitionsRemaining;
+
+      return true;
+    }
+
+    final movedNext = _iterator.moveNext();
+    if (movedNext) {
+      _currentRepetitionsRemaining = _iterator.current.repetitions - 1;
+    }
+
+    return movedNext;
+  }
+
+  @override
+  IntervalDefinition get current => _iterator.current;
 }

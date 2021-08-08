@@ -22,4 +22,11 @@ class IntervalsSequence {
         intervalDefinitions: newIntervalDefinitions ?? intervalDefinitions,
         repetitions: newRepetitions ?? repetitions,
       );
+
+  int get intervalsCount =>
+      repetitions *
+      intervalDefinitions.fold(
+        0,
+        (previousValue, element) => previousValue + element.repetitions,
+      );
 }
