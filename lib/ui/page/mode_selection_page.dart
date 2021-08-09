@@ -75,21 +75,17 @@ class _AmrapModeButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _ModeButton(
       modeName: 'AMRAP',
-      onTap: () => Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (context) => const IntervalInputPage(),
-          settings: RouteSettings(
-            arguments: IntervalInputDelegate(
-              submitIcon: Icons.play_arrow_rounded,
-              onSubmit: (intervalDefinition) {
-                ref
-                    .read(intervalsSetupNotifierProvider.notifier)
-                    .add(intervalDefinition);
+      onTap: () => launchIntervalInput(
+        context,
+        IntervalInputDelegate(
+          submitIcon: Icons.play_arrow_rounded,
+          onSubmit: (intervalDefinition) {
+            ref
+                .read(intervalsSetupNotifierProvider.notifier)
+                .add(intervalDefinition);
 
-                launchAmrap(context);
-              },
-            ),
-          ),
+            launchAmrap(context);
+          },
         ),
       ),
     );

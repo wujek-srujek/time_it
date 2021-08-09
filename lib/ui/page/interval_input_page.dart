@@ -11,6 +11,20 @@ import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
 
+void launchIntervalInput(
+  BuildContext context,
+  IntervalInputDelegate delegate,
+) {
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (context) => const IntervalInputPage(),
+      settings: RouteSettings(
+        arguments: delegate,
+      ),
+    ),
+  );
+}
+
 class IntervalInputDelegate {
   final IconData submitIcon;
   final void Function(IntervalDefinition) onSubmit;

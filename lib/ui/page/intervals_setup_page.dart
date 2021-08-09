@@ -101,25 +101,19 @@ class _IntervalListTile extends ConsumerWidget {
             child: InkWell(
               borderRadius: borderRadius,
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (context) => const IntervalInputPage(),
-                    settings: RouteSettings(
-                      arguments: IntervalInputDelegate(
-                        submitIcon: Icons.refresh_rounded,
-                        onSubmit: (intervalDefinition) {
-                          ref
-                              .read(intervalsSetupNotifierProvider.notifier)
-                              .update(
-                                index: index,
-                                intervalDefinition: intervalDefinition,
-                              );
+                launchIntervalInput(
+                  context,
+                  IntervalInputDelegate(
+                    submitIcon: Icons.refresh_rounded,
+                    onSubmit: (intervalDefinition) {
+                      ref.read(intervalsSetupNotifierProvider.notifier).update(
+                            index: index,
+                            intervalDefinition: intervalDefinition,
+                          );
 
-                          Navigator.of(context).pop();
-                        },
-                        prototype: intervalDefinition,
-                      ),
-                    ),
+                      Navigator.of(context).pop();
+                    },
+                    prototype: intervalDefinition,
                   ),
                 );
               },
@@ -209,21 +203,17 @@ class _AddButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonButton(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (context) => const IntervalInputPage(),
-            settings: RouteSettings(
-              arguments: IntervalInputDelegate(
-                submitIcon: Icons.add_rounded,
-                onSubmit: (intervalDefinition) {
-                  ref
-                      .read(intervalsSetupNotifierProvider.notifier)
-                      .add(intervalDefinition);
+        launchIntervalInput(
+          context,
+          IntervalInputDelegate(
+            submitIcon: Icons.add_rounded,
+            onSubmit: (intervalDefinition) {
+              ref
+                  .read(intervalsSetupNotifierProvider.notifier)
+                  .add(intervalDefinition);
 
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
+              Navigator.of(context).pop();
+            },
           ),
         );
       },
