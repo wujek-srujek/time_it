@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/interval_input.dart';
-import '../../provider/intervals_setup.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
@@ -95,35 +94,34 @@ class _IntervalTextWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinition = ref.watchIntervalDefinition();
+    final intervalInput = ref.watch(intervalInputNotifierProvider);
 
-    final textColor = intervalDefinition.isNotEmpty
-        ? Theme.of(context).colorScheme.primary
-        : null;
+    final textColor =
+        intervalInput.isNotEmpty ? Theme.of(context).colorScheme.primary : null;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _UnitTile(
-          intervalDefinition.hours,
+          intervalInput.hours,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          intervalDefinition.minutes,
+          intervalInput.minutes,
           textColor: textColor,
         ),
         _DotsTile(textColor: textColor),
         _UnitTile(
-          intervalDefinition.seconds,
+          intervalInput.seconds,
           textColor: textColor,
         ),
         GestureDetector(
-          onLongPress: intervalDefinition.isNotEmpty
+          onLongPress: intervalInput.isNotEmpty
               ? () => ref.read(intervalInputNotifierProvider.notifier).reset()
               : null,
           child: IconButton(
-            onPressed: intervalDefinition.isNotEmpty
+            onPressed: intervalInput.isNotEmpty
                 ? () => ref
                     .read(intervalInputNotifierProvider.notifier)
                     .deleteLastDigit()
@@ -226,40 +224,19 @@ class _SubmitButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinition = ref.watchIntervalDefinition();
+    final intervalInput = ref.watch(intervalInputNotifierProvider);
 
     final delegate =
         ModalRoute.of(context)!.settings.arguments! as IntervalInputDelegate;
 
     return Activation(
-      isActive: intervalDefinition.isNotEmpty,
+      isActive: intervalInput.isNotEmpty,
       child: CommonButton.primary(
-        onTap: () => delegate.onSubmit(intervalDefinition),
+        onTap: () => delegate.onSubmit(
+          ref.watch(intervalInputNotifierProvider.notifier).intervalDefinition,
+        ),
         child: Icon(delegate.submitIcon),
       ),
     );
-  }
-}
-
-// [IntervalDefinition] may be `null` in [intervalInputNotifierProvider] so
-// let's use a 'null object'. If not, `null` would need to be dealt with in many
-// places in this library.
-
-class _UnsetIntervalDefinition extends IntervalDefinition {
-  const _UnsetIntervalDefinition();
-}
-
-extension _IntervalDefinitionX on IntervalDefinition {
-  bool get isNotEmpty => this is! _UnsetIntervalDefinition;
-}
-
-/// **Note**: this extension is pretty much a workaround for
-/// https://github.com/rrousselGit/river_pod/issues/648 and should be replaced
-/// with a standard and recommended solution once fixed.
-
-extension _IntervalDefinitiontWidgetRefX on WidgetRef {
-  IntervalDefinition watchIntervalDefinition() {
-    return watch(intervalInputNotifierProvider) ??
-        const _UnsetIntervalDefinition();
   }
 }

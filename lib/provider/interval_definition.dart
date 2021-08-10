@@ -18,6 +18,7 @@ class IntervalDefinition {
         assert(minutes <= 99),
         assert(seconds >= 0),
         assert(seconds <= 99),
+        assert(hours > 0 || minutes > 0 || seconds > 0),
         assert(repetitions >= 1);
 
   IntervalDefinition copyWith({
