@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../provider/intervals_setup.dart';
+import '../../provider/interval_group.dart';
 import '../../provider/workout_intervals.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
@@ -81,8 +81,9 @@ class _AmrapModeButton extends ConsumerWidget {
         IntervalInputDelegate(
           submitIcon: Icons.play_arrow_rounded,
           onSubmit: (intervalDefinition) {
-            ref.read(workoutIntervalsProvider.notifier).state =
-                IntervalsSequence.single(intervalDefinition);
+            ref.read(workoutIntervalsProvider.notifier).state = [
+              IntervalGroup.single(intervalDefinition),
+            ];
 
             launchAmrap(context);
           },

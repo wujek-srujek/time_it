@@ -5,28 +5,20 @@ import 'interval_definition.dart';
 export 'interval_definition.dart';
 
 @immutable
-class IntervalsSequence {
+class IntervalGroup {
   final List<IntervalDefinition> intervalDefinitions;
   final int repetitions;
 
-  const IntervalsSequence({
+  const IntervalGroup({
     this.intervalDefinitions = const [],
     this.repetitions = 1,
-  }) : assert(repetitions > 0);
+  })  : assert(intervalDefinitions.length >= 1),
+        assert(repetitions >= 1);
 
-  IntervalsSequence.single(IntervalDefinition intervalDefinition)
+  IntervalGroup.single(IntervalDefinition intervalDefinition)
       : this(intervalDefinitions: [intervalDefinition]);
 
-  IntervalsSequence copyWith({
-    List<IntervalDefinition>? newIntervalDefinitions,
-    int? newRepetitions,
-  }) =>
-      IntervalsSequence(
-        intervalDefinitions: newIntervalDefinitions ?? intervalDefinitions,
-        repetitions: newRepetitions ?? repetitions,
-      );
-
-  int get intervalsCount =>
+  int get intervalCount =>
       repetitions *
       intervalDefinitions.fold(
         0,

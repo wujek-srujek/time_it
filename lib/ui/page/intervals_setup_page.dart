@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../provider/interval_group.dart';
 import '../../provider/intervals_setup.dart';
 import '../../provider/workout_intervals.dart';
 import '../../util/duration_formatter.dart';
@@ -45,22 +46,22 @@ class _IntervalsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinitions = ref.watchIntervalDefinitions();
+    final items = ref.watch(intervalsSetupNotifierProvider);
 
     final leaveBehindIndicatorColor = Theme.of(context).colorScheme.error;
 
     return ReorderableListView.builder(
-      itemCount: intervalDefinitions.length,
+      itemCount: items.length,
       onReorder: (oldIndex, newIndex) {
         ref
             .read(intervalsSetupNotifierProvider.notifier)
             .move(oldIndex: oldIndex, newIndex: newIndex);
       },
       itemBuilder: (context, index) {
-        final intervalDefinition = intervalDefinitions[index];
+        final item = items[index];
 
         return Dismissible(
-          key: ObjectKey(intervalDefinition),
+          key: ObjectKey(item),
           background: Container(
             color: leaveBehindIndicatorColor,
           ),
@@ -69,7 +70,9 @@ class _IntervalsList extends ConsumerWidget {
           },
           child: _IntervalListTile(
             index: index,
-            intervalDefinition: intervalDefinition,
+            // Safe for now, the UI doesn't support anything else yet.
+            intervalDefinition:
+                (item as IntervalDefinitionItem).intervalDefinition,
           ),
         );
       },
@@ -109,7 +112,7 @@ class _IntervalListTile extends ConsumerWidget {
                     onSubmit: (intervalDefinition) {
                       ref.read(intervalsSetupNotifierProvider.notifier).update(
                             index: index,
-                            intervalDefinition: intervalDefinition,
+                            item: IntervalDefinitionItem(intervalDefinition),
                           );
 
                       Navigator.of(context).pop();
@@ -154,8 +157,10 @@ class _IntervalListTile extends ConsumerWidget {
                     repetitions != intervalDefinition.repetitions) {
                   ref.read(intervalsSetupNotifierProvider.notifier).update(
                         index: index,
-                        intervalDefinition: intervalDefinition.copyWith(
-                          newRepetitions: repetitions,
+                        item: IntervalDefinitionItem(
+                          intervalDefinition.copyWith(
+                            newRepetitions: repetitions,
+                          ),
                         ),
                       );
                 }
@@ -183,10 +188,10 @@ class _ResetButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalDefinitions = ref.watchIntervalDefinitions();
+    final items = ref.watch(intervalsSetupNotifierProvider);
 
     return Activation(
-      isActive: intervalDefinitions.isNotEmpty,
+      isActive: items.isNotEmpty,
       child: CommonButton.destructive(
         onLongPress: () {
           ref.read(intervalsSetupNotifierProvider.notifier).reset();
@@ -211,7 +216,7 @@ class _AddButton extends ConsumerWidget {
             onSubmit: (intervalDefinition) {
               ref
                   .read(intervalsSetupNotifierProvider.notifier)
-                  .add(intervalDefinition);
+                  .add(IntervalDefinitionItem(intervalDefinition));
 
               Navigator.of(context).pop();
             },
@@ -228,16 +233,16 @@ class _StartButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalsSequence = ref.watch(intervalsSetupNotifierProvider);
+    final items = ref.watch(intervalsSetupNotifierProvider);
 
     return Activation(
-      isActive: intervalsSequence.intervalDefinitions.isNotEmpty,
+      isActive: items.isNotEmpty,
       child: CommonButton.primary(
         onTap: () async {
           final repetitions = await showDialog<int>(
             context: context,
-            builder: (context) => _RepetitionsDialog(
-              repetitions: intervalsSequence.repetitions,
+            builder: (context) => const _RepetitionsDialog(
+              repetitions: 1,
             ),
           );
 
@@ -245,8 +250,11 @@ class _StartButton extends ConsumerWidget {
             return;
           }
 
-          ref.read(workoutIntervalsProvider.notifier).state =
-              intervalsSequence.copyWith(newRepetitions: repetitions);
+          final group = ref
+              .read(intervalsSetupNotifierProvider.notifier)
+              .intervalGroup(repetitions);
+
+          ref.read(workoutIntervalsProvider.notifier).state = [group];
 
           await launchIntervals(context);
         },
@@ -309,17 +317,5 @@ class _RepetitionsDialogState extends State<_RepetitionsDialog> {
         ),
       ],
     );
-  }
-}
-
-/// **Note**: this extension is pretty much a workaround for
-/// https://github.com/rrousselGit/river_pod/issues/648 and should be replaced
-/// with a standard and recommended solution once fixed.
-
-extension _IntervalsSequenceWidgetRefX on WidgetRef {
-  List<IntervalDefinition> watchIntervalDefinitions() {
-    return watch(intervalsSetupNotifierProvider.select(
-      (state) => state.intervalDefinitions,
-    ));
   }
 }

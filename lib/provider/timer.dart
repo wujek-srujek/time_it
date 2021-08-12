@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
 import '../util/ticker.dart';
+import 'interval_group.dart';
 import 'keep_awake.dart';
 import 'player.dart';
 import 'workout_intervals.dart';
@@ -222,12 +223,12 @@ class TimerNotifier extends StateNotifier<TimerState> {
 final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
-    final intervalsSequence = ref.watch(workoutIntervalsProvider).state;
+    final intervalGroups = ref.watch(workoutIntervalsProvider).state;
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 
     return TimerNotifier(
-      _IntervalsEngine(intervalsSequence),
+      _IntervalsEngine.forGroups(intervalGroups),
       _TimerDelegate(
         onStart: keepAwake.enable,
         onStop: keepAwake.disable,
@@ -252,22 +253,61 @@ class _TimerDelegate {
   });
 }
 
-class _IntervalsEngine implements Iterator<IntervalInfo> {
-  final IntervalsSequence _intervalsSequence;
-  final int _totalCount;
+abstract class _IntervalsEngine extends Iterator<IntervalInfo?> {
+  IntervalInfo? get next => moveNext() ? current : null;
 
-  late Iterator<IntervalDefinition> _sequenceRepetitionIterator;
-  late int _repetitionsRemaining;
-  late int _ordinal;
+  void reset();
 
-  _IntervalsEngine(this._intervalsSequence)
-      : _totalCount = _intervalsSequence.intervalsCount {
+  static _IntervalsEngine forGroups(List<IntervalGroup> intervalGroups) {
+    return intervalGroups.isEmpty
+        ? _EmptyIntervalsEngine()
+        : _NonEmptyIntervalsEngine(intervalGroups.first);
+  }
+}
+
+class _EmptyIntervalsEngine extends _IntervalsEngine {
+  late bool _hasNext;
+
+  _EmptyIntervalsEngine() {
     reset();
   }
 
   @override
   bool moveNext() {
-    if (_sequenceRepetitionIterator.moveNext()) {
+    if (_hasNext) {
+      _hasNext = false;
+
+      return true;
+    }
+
+    return false;
+  }
+
+  @override
+  IntervalInfo? get current => null;
+
+  @override
+  void reset() {
+    _hasNext = true;
+  }
+}
+
+class _NonEmptyIntervalsEngine extends _IntervalsEngine {
+  final IntervalGroup _intervalGroup;
+  final int _totalCount;
+
+  late Iterator<IntervalDefinition> _groupRepetitionIterator;
+  late int _repetitionsRemaining;
+  late int _ordinal;
+
+  _NonEmptyIntervalsEngine(this._intervalGroup)
+      : _totalCount = _intervalGroup.intervalCount {
+    reset();
+  }
+
+  @override
+  bool moveNext() {
+    if (_groupRepetitionIterator.moveNext()) {
       ++_ordinal;
 
       return true;
@@ -277,29 +317,31 @@ class _IntervalsEngine implements Iterator<IntervalInfo> {
       return false;
     }
 
-    _resetSequenceRepetitionIterator();
+    _resetGroupRepetitionIterator();
 
     return moveNext();
   }
 
   @override
   IntervalInfo get current => IntervalInfo(
-        interval: _sequenceRepetitionIterator.current.toDuration(),
+        interval: _groupRepetitionIterator.current.toDuration(),
         ordinal: _ordinal,
         totalCount: _totalCount,
       );
 
+  @override
   IntervalInfo? get next => moveNext() ? current : null;
 
+  @override
   void reset() {
-    _repetitionsRemaining = _intervalsSequence.repetitions;
+    _repetitionsRemaining = _intervalGroup.repetitions;
     _ordinal = 0;
-    _resetSequenceRepetitionIterator();
+    _resetGroupRepetitionIterator();
   }
 
-  void _resetSequenceRepetitionIterator() {
-    _sequenceRepetitionIterator = _IntervalsSequenceRepetitionIterator(
-      _intervalsSequence.intervalDefinitions.iterator,
+  void _resetGroupRepetitionIterator() {
+    _groupRepetitionIterator = _IntervalGroupRepetitionIterator(
+      _intervalGroup.intervalDefinitions.iterator,
     );
     --_repetitionsRemaining;
   }
@@ -307,14 +349,13 @@ class _IntervalsEngine implements Iterator<IntervalInfo> {
 
 /// Iterates over all [IntervalDefinition]s taking repetitions into account.
 ///
-/// This essentially performs a single repetition of [IntervalsSequence].
-class _IntervalsSequenceRepetitionIterator
-    implements Iterator<IntervalDefinition> {
+/// This essentially performs a single repetition of [IntervalGroup].
+class _IntervalGroupRepetitionIterator implements Iterator<IntervalDefinition> {
   final Iterator<IntervalDefinition> _iterator;
 
   int _currentRepetitionsRemaining;
 
-  _IntervalsSequenceRepetitionIterator(this._iterator)
+  _IntervalGroupRepetitionIterator(this._iterator)
       : _currentRepetitionsRemaining = 0;
 
   @override
