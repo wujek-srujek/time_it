@@ -4,9 +4,9 @@ import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
 import '../util/ticker.dart';
-import 'intervals_setup.dart';
 import 'keep_awake.dart';
 import 'player.dart';
+import 'workout_intervals.dart';
 
 enum TimerStatus {
   running,
@@ -222,7 +222,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
-    final intervalsSequence = ref.watch(intervalsSetupNotifierProvider);
+    final intervalsSequence = ref.watch(workoutIntervalsProvider).state;
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 

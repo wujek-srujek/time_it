@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/intervals_setup.dart';
+import '../../provider/workout_intervals.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
@@ -244,7 +245,8 @@ class _StartButton extends ConsumerWidget {
             return;
           }
 
-          ref.read(intervalsSetupNotifierProvider.notifier).repeat(repetitions);
+          ref.read(workoutIntervalsProvider.notifier).state =
+              intervalsSequence.copyWith(newRepetitions: repetitions);
 
           await launchIntervals(context);
         },

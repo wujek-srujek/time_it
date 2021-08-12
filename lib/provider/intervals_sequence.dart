@@ -14,6 +14,9 @@ class IntervalsSequence {
     this.repetitions = 1,
   }) : assert(repetitions > 0);
 
+  IntervalsSequence.single(IntervalDefinition intervalDefinition)
+      : this(intervalDefinitions: [intervalDefinition]);
+
   IntervalsSequence copyWith({
     List<IntervalDefinition>? newIntervalDefinitions,
     int? newRepetitions,
