@@ -65,7 +65,15 @@ class IntervalInputNotifier extends StateNotifier<IntervalInput> {
 
   void reset() {
     if (_digitCount > 0) {
-      _update(_resetInput);
+      _update(() {
+        // Traverse the input and reset the digits to reset. Only relevant parts
+        // of the input are considered.
+        for (var i = _input.length - _digitCount; i < _input.length; ++i) {
+          _input[i] = 0;
+        }
+
+        _digitCount = 0;
+      });
     }
   }
 
@@ -103,14 +111,6 @@ class IntervalInputNotifier extends StateNotifier<IntervalInput> {
           minutes: state.minutes,
           seconds: state.seconds,
         );
-
-  void _resetInput() {
-    for (var i = _input.length - _digitCount; i < _input.length; ++i) {
-      _input[i] = 0;
-    }
-
-    _digitCount = 0;
-  }
 
   void _update(void Function() operations) {
     operations();
