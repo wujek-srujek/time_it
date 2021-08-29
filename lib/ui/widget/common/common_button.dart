@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'common_features.dart';
+import 'filled_box.dart';
 import 'size_dependent_padding.dart';
 
 enum CommonButtonVariant {
@@ -89,24 +90,11 @@ class CommonButton extends StatelessWidget {
 
     return InkWell(
       highlightColor: color.withAlpha(75),
-      borderRadius: borderRadius,
+      borderRadius: allCircularBorderRadius,
       onTap: onTap,
       onLongPress: onLongPress,
-      child: TweenAnimationBuilder<Color?>(
-        duration: animationDuration,
-        tween: ColorTween(end: color.withAlpha(150)),
-        builder: (context, color, child) {
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              border: Border.all(
-                color: textStyle(context).color!,
-              ),
-              color: color,
-            ),
-            child: child,
-          );
-        },
+      child: FilledBox(
+        color: color.withAlpha(150),
         child: SizeDependentPadding.all(
           _paddingRatio,
           calculationBase: CalculationBase.smallerSide,

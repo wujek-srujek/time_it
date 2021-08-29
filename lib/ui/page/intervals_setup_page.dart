@@ -103,7 +103,7 @@ class _IntervalListTile extends ConsumerWidget {
           Expanded(
             flex: 3,
             child: InkWell(
-              borderRadius: borderRadius,
+              borderRadius: allCircularBorderRadius,
               onTap: () {
                 launchIntervalInput(
                   context,
@@ -129,7 +129,7 @@ class _IntervalListTile extends ConsumerWidget {
           ),
           Expanded(
             child: InkWell(
-              borderRadius: borderRadius,
+              borderRadius: allCircularBorderRadius,
               onTap: () async {
                 final repetitions = await showDialog<int>(
                   context: context,
@@ -293,7 +293,7 @@ class _RepetitionsDialogState extends State<_RepetitionsDialog> {
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: borderRadius,
+        borderRadius: allCircularBorderRadius,
       ),
       actionsPadding: const EdgeInsets.all(16),
       title: const Text('Choose repetitions'),
