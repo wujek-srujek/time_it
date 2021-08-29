@@ -44,9 +44,6 @@ class FilledBox extends StatelessWidget {
             bottomLeft: roundedCorners[Corner.bottomLeft],
             bottomRight: roundedCorners[Corner.bottomRight],
           ),
-          border: Border.all(
-            color: textStyle(context).color!,
-          ),
           color: color,
         ),
       ),
