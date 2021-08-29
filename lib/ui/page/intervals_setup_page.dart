@@ -135,21 +135,6 @@ class _IntervalListTile extends ConsumerWidget {
                   context: context,
                   builder: (context) => _RepetitionsDialog(
                     repetitions: intervalDefinition.repetitions,
-                    subject: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          orderedAvatar,
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 32),
-                              child: FittedText(formattedInterval),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 );
 
@@ -266,11 +251,9 @@ class _StartButton extends ConsumerWidget {
 
 class _RepetitionsDialog extends StatefulWidget {
   final int repetitions;
-  final Widget? subject;
 
   const _RepetitionsDialog({
     required this.repetitions,
-    this.subject,
   });
 
   @override
@@ -297,18 +280,12 @@ class _RepetitionsDialogState extends State<_RepetitionsDialog> {
       ),
       actionsPadding: const EdgeInsets.all(16),
       title: const Text('Choose repetitions'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.subject != null) widget.subject!,
-          SizedBox(
-            height: screenHeight / 6,
-            child: RepetitionsPicker(
-              value: _repetitions,
-              onChanged: (value) => setState(() => _repetitions = value),
-            ),
-          ),
-        ],
+      content: SizedBox(
+        height: screenHeight / 6,
+        child: RepetitionsPicker(
+          value: _repetitions,
+          onChanged: (value) => setState(() => _repetitions = value),
+        ),
       ),
       actions: [
         CommonButton.primary(
