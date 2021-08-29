@@ -9,7 +9,6 @@ import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
-import '../widget/common/ordered_avatar.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/repetitions_picker.dart';
 import '../workout_lanucher.dart';
@@ -91,13 +90,9 @@ class _IntervalListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderedAvatar = OrderedAvatar(
-      ordinal: index + 1,
-    );
     final formattedInterval = _formatInterval(intervalDefinition.toDuration());
 
     return ListTile(
-      leading: orderedAvatar,
       title: Row(
         children: [
           Expanded(
@@ -122,7 +117,7 @@ class _IntervalListTile extends ConsumerWidget {
                 );
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: FittedText(formattedInterval),
               ),
             ),
