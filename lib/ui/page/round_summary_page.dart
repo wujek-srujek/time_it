@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../provider/round_data.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/fitted_text.dart';
-import '../widget/common/ordered_avatar.dart';
+import '../widget/common/number_avatar.dart';
 import '../widget/common/page_scaffold.dart';
 
 class RoundSummaryPage extends ConsumerWidget {
@@ -137,8 +137,8 @@ class _RoundsList extends ConsumerWidget {
         }
 
         return ListTile(
-          leading: OrderedAvatar(
-            ordinal: index + 1,
+          leading: NumberAvatar(
+            number: index + 1,
           ),
           title: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 48),

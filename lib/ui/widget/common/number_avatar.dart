@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-class OrderedAvatar extends StatelessWidget {
-  final int ordinal;
+class NumberAvatar extends StatelessWidget {
+  final int number;
 
-  const OrderedAvatar({
-    required this.ordinal,
-  }) : assert(ordinal > 0);
+  const NumberAvatar({
+    required this.number,
+  }) : assert(number > 0);
 
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
       backgroundColor: Theme.of(context).colorScheme.onSurface,
-      child: Text('$ordinal'),
+      child: Text('$number'),
     );
   }
 }
