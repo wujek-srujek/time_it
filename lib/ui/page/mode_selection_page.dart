@@ -7,7 +7,7 @@ import '../../provider/workout_intervals.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
-import '../workout_lanucher.dart';
+import '../workout_launcher.dart';
 import 'interval_input_page.dart';
 import 'intervals_setup_page.dart';
 

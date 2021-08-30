@@ -11,7 +11,7 @@ import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/repetitions_picker.dart';
-import '../workout_lanucher.dart';
+import '../workout_launcher.dart';
 import 'interval_input_page.dart';
 
 class IntervalsSetupPage extends StatelessWidget {
