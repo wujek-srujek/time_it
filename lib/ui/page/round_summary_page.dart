@@ -80,6 +80,11 @@ class _RoundStatisticsWidget extends ConsumerWidget {
           roundData.averageRoundDuration,
           null,
         ),
+        _makeRow(
+          'Std. deviation:',
+          roundData.standardDeviation,
+          null,
+        ),
       ],
     );
   }

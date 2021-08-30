@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
@@ -11,12 +12,14 @@ class RoundData {
   final int slowestRoundIndex;
   final int fastestRoundIndex;
   final Duration averageRoundDuration;
+  final Duration standardDeviation;
 
   const RoundData({
     required this.roundDurations,
     required this.slowestRoundIndex,
     required this.fastestRoundIndex,
     required this.averageRoundDuration,
+    required this.standardDeviation,
   })  : assert(roundDurations.length > 0),
         assert(slowestRoundIndex >= 0),
         assert(slowestRoundIndex < roundDurations.length),
@@ -64,11 +67,14 @@ class RoundDataNotifier extends StateNotifier<RoundData?> {
 
     _previousElapsed = elapsed;
 
+    final average = elapsed ~/ _roundDurations.length;
+
     state = RoundData(
       roundDurations: UnmodifiableListView(_roundDurations),
       slowestRoundIndex: _slowestRoundIndex!,
       fastestRoundIndex: _fastestRoundIndex!,
-      averageRoundDuration: elapsed ~/ _roundDurations.length,
+      averageRoundDuration: average,
+      standardDeviation: standardDeviation(average),
     );
   }
 
@@ -78,6 +84,22 @@ class RoundDataNotifier extends StateNotifier<RoundData?> {
     _slowestRoundIndex = null;
     _fastestRoundIndex = null;
     state = null;
+  }
+
+  // stdDev = sqrt(sum((xi - average)^2) / N)
+  Duration standardDeviation(Duration average) {
+    final averageMicroseconds = average.inMicroseconds;
+    final sumOfSquares = _roundDurations
+        // xi - average
+        .map((duration) => duration.inMicroseconds - averageMicroseconds)
+        // (xi - average)^2
+        .map((diff) => diff * diff)
+        // sum((xi - average)^2)
+        .reduce((value, element) => value + element);
+    // stdDev = sqrt(sum((xi - average)^2) / N)
+    final stdDev = sqrt(sumOfSquares ~/ _roundDurations.length);
+
+    return Duration(microseconds: stdDev.toInt());
   }
 }
 
