@@ -26,13 +26,16 @@ class IntervalsSetupPage extends StatelessWidget {
           const Expanded(
             child: _IntervalsList(),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              _ResetButton(),
-              _AddButton(),
-              _StartButton(),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                _ResetButton(),
+                _AddButton(),
+                _StartButton(),
+              ],
+            ),
           ),
         ],
       ),
@@ -122,6 +125,7 @@ class _IntervalListTile extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(width: 12),
           Expanded(
             child: InkWell(
               borderRadius: allCircularBorderRadius,
