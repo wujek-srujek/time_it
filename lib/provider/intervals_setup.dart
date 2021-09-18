@@ -106,6 +106,39 @@ class IntervalsSetup with EquatableMixin {
 
   @override
   List<Object?> get props => [groupedItems, hasIntervals];
+
+  // For now the timer doesn't support groups so let's flatten/unwind all
+  // IntervalDefinitionItems into a single group considering all repetitions.
+  IntervalGroup toIntervalGroup() {
+    final intervalDefinitions = <IntervalDefinition>[];
+    var groupRepetitions = 1;
+    var groupedIntervals = <IntervalDefinition>[];
+    for (final groupedItemWithNext in groupedItems.withNext()) {
+      final groupedItem = groupedItemWithNext.first;
+      final item = groupedItem.item;
+      if (item is IntervalGroupItem || groupedItemWithNext.second == null) {
+        // Add the very last interval definition.
+        if (item is IntervalDefinitionItem) {
+          groupedIntervals.add(item.intervalDefinition);
+        }
+        // Add collected interval definitions from terminated group with its
+        // repetitions.
+        for (var i = 0; i < groupRepetitions; ++i) {
+          intervalDefinitions.addAll(groupedIntervals);
+        }
+        groupRepetitions = item.repetitions;
+        groupedIntervals = [];
+      } else if (item is IntervalDefinitionItem) {
+        groupedIntervals.add(item.intervalDefinition);
+      } else {
+        assert(false, 'unknown item type $item');
+      }
+    }
+
+    return IntervalGroup(
+      intervalDefinitions: intervalDefinitions,
+    );
+  }
 }
 
 // Modification operations work with [Iterable]s for performance - this way
@@ -185,16 +218,6 @@ class IntervalsSetupNotifier extends StateNotifier<IntervalsSetup> {
   void reset() {
     state = IntervalsSetup.initial();
   }
-
-  // For now the timer doesn't support groups so let's flatten all
-  // IntervalDefinitionItems into a single group.
-  IntervalGroup intervalGroup(int repetitions) => IntervalGroup(
-        intervalDefinitions: state.groupedItems.unwrapped
-            .whereType<IntervalDefinitionItem>()
-            .map((item) => item.intervalDefinition)
-            .toList(),
-        repetitions: repetitions,
-      );
 
   void _recalculateState(Iterable<IntervalsSetupItem> items) {
     final recalculated = <GroupedIntervalsSetupItem>[];

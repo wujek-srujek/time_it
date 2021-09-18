@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../provider/interval_group.dart';
 import '../../provider/intervals_setup.dart';
 import '../../provider/workout_intervals.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
+import '../widget/common/filled_box.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
 import '../widget/mode/repetitions_picker.dart';
@@ -48,116 +48,161 @@ class _IntervalsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setup = ref.watch(intervalsSetupNotifierProvider);
+    final groupedItems = ref.watch(intervalsSetupNotifierProvider).groupedItems;
 
-    final leaveBehindIndicatorColor = Theme.of(context).colorScheme.error;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ReorderableListView.builder(
+        itemCount: groupedItems.length,
+        onReorder: (oldIndex, newIndex) {
+          ref
+              .read(intervalsSetupNotifierProvider.notifier)
+              .move(oldIndex: oldIndex, newIndex: newIndex);
+        },
+        itemBuilder: (context, index) {
+          final groupedItem = groupedItems[index];
 
-    return ReorderableListView.builder(
-      itemCount: setup.groupedItems.length,
-      onReorder: (oldIndex, newIndex) {
-        ref
-            .read(intervalsSetupNotifierProvider.notifier)
-            .move(oldIndex: oldIndex, newIndex: newIndex);
-      },
-      itemBuilder: (context, index) {
-        final groupedItem = setup.groupedItems[index];
-
-        return Dismissible(
-          key: ObjectKey(groupedItem),
-          background: Container(
-            color: leaveBehindIndicatorColor,
-          ),
-          onDismissed: (direction) {
-            ref.read(intervalsSetupNotifierProvider.notifier).remove(index);
-          },
-          child: _IntervalListTile(
+          return _IntervalsListItem(
             index: index,
-            // Safe for now, the UI doesn't support anything else yet.
-            intervalDefinition:
-                (groupedItem.item as IntervalDefinitionItem).intervalDefinition,
-          ),
-        );
-      },
+            groupedItem: groupedItem,
+          );
+        },
+      ),
     );
   }
 }
 
-class _IntervalListTile extends ConsumerWidget {
+class _IntervalsListItem extends ConsumerWidget {
   final int index;
-  final IntervalDefinition intervalDefinition;
+  final GroupedIntervalsSetupItem groupedItem;
 
-  const _IntervalListTile({
+  _IntervalsListItem({
     required this.index,
-    required this.intervalDefinition,
+    required this.groupedItem,
+  }) : super(key: ObjectKey(groupedItem));
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final item = groupedItem.item;
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final baseColor =
+        groupedItem.group.isEven ? colorScheme.primary : colorScheme.secondary;
+
+    return Dismissible(
+      key: key!,
+      onDismissed: (direction) {
+        ref.read(intervalsSetupNotifierProvider.notifier).remove(index);
+      },
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: groupedItem.isFirst ? 4 : 0,
+          bottom: groupedItem.isLast ? 4 : 0,
+        ),
+        child: FilledBox(
+          color: baseColor.withAlpha(100),
+          roundedCorners: {
+            if (groupedItem.isFirst) ...{
+              Corner.topLeft,
+              Corner.topRight,
+            },
+            if (groupedItem.isLast) ...{
+              Corner.bottomLeft,
+              Corner.bottomRight,
+            },
+          },
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: _IntervalsItemWidget(
+                  index: index,
+                  item: item,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InkWell(
+                  borderRadius: allCircularBorderRadius,
+                  onTap: () async {
+                    final repetitions = await showDialog<int>(
+                      context: context,
+                      builder: (context) => _RepetitionsDialog(
+                        repetitions: item.repetitions,
+                      ),
+                    );
+
+                    if (repetitions != null &&
+                        repetitions != item.repetitions) {
+                      ref.read(intervalsSetupNotifierProvider.notifier).update(
+                            index: index,
+                            item: item.withRepetitions(repetitions),
+                          );
+                    }
+                  },
+                  child: SizedBox(
+                    height: 48,
+                    child: FittedText('×${item.repetitions}'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IntervalsItemWidget extends ConsumerWidget {
+  final int index;
+  final IntervalsSetupItem item;
+
+  const _IntervalsItemWidget({
+    required this.index,
+    required this.item,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final formattedInterval = _formatInterval(intervalDefinition.toDuration());
+    final item = this.item;
 
-    return ListTile(
-      title: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: InkWell(
-              borderRadius: allCircularBorderRadius,
-              onTap: () {
-                launchIntervalInput(
-                  context,
-                  IntervalInputDelegate(
-                    submitIcon: Icons.refresh_rounded,
-                    onSubmit: (intervalDefinition) {
-                      ref.read(intervalsSetupNotifierProvider.notifier).update(
-                            index: index,
-                            item: IntervalDefinitionItem(intervalDefinition),
-                          );
+    if (item is IntervalGroupItem) {
+      return Container();
+    } else if (item is IntervalDefinitionItem) {
+      return InkWell(
+        borderRadius: allCircularBorderRadius,
+        onTap: () {
+          launchIntervalInput(
+            context,
+            IntervalInputDelegate(
+              submitIcon: Icons.refresh_rounded,
+              onSubmit: (intervalDefinition) {
+                ref.read(intervalsSetupNotifierProvider.notifier).update(
+                      index: index,
+                      item: IntervalDefinitionItem(intervalDefinition),
+                    );
 
-                      Navigator.of(context).pop();
-                    },
-                    prototype: intervalDefinition,
-                  ),
-                );
+                Navigator.of(context).pop();
               },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: FittedText(formattedInterval),
-              ),
+              prototype: item.intervalDefinition,
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: FittedText(
+            _formatInterval(
+              item.intervalDefinition.toDuration(),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: InkWell(
-              borderRadius: allCircularBorderRadius,
-              onTap: () async {
-                final repetitions = await showDialog<int>(
-                  context: context,
-                  builder: (context) => _RepetitionsDialog(
-                    repetitions: intervalDefinition.repetitions,
-                  ),
-                );
+        ),
+      );
+    }
 
-                if (repetitions != null &&
-                    repetitions != intervalDefinition.repetitions) {
-                  ref.read(intervalsSetupNotifierProvider.notifier).update(
-                        index: index,
-                        item: IntervalDefinitionItem(
-                          intervalDefinition.copyWith(
-                            newRepetitions: repetitions,
-                          ),
-                        ),
-                      );
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: FittedText('×${intervalDefinition.repetitions}'),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    assert(false, 'unknown item type');
+
+    return Container();
   }
 }
 
@@ -193,18 +238,9 @@ class _AddButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonButton(
       onTap: () {
-        launchIntervalInput(
-          context,
-          IntervalInputDelegate(
-            submitIcon: Icons.add_rounded,
-            onSubmit: (intervalDefinition) {
-              ref
-                  .read(intervalsSetupNotifierProvider.notifier)
-                  .add(IntervalDefinitionItem(intervalDefinition));
-
-              Navigator.of(context).pop();
-            },
-          ),
+        showDialog<void>(
+          context: context,
+          builder: (context) => const _AddDialog(),
         );
       },
       child: const Icon(Icons.add_rounded),
@@ -223,22 +259,9 @@ class _StartButton extends ConsumerWidget {
       isActive: setup.hasIntervals,
       child: CommonButton.primary(
         onTap: () async {
-          final repetitions = await showDialog<int>(
-            context: context,
-            builder: (context) => const _RepetitionsDialog(
-              repetitions: 1,
-            ),
-          );
-
-          if (repetitions == null) {
-            return;
-          }
-
-          final group = ref
-              .read(intervalsSetupNotifierProvider.notifier)
-              .intervalGroup(repetitions);
-
-          ref.read(workoutIntervalsProvider.notifier).state = [group];
+          ref.read(workoutIntervalsProvider.notifier).state = [
+            setup.toIntervalGroup(),
+          ];
 
           await launchIntervals(context);
         },
@@ -292,6 +315,54 @@ class _RepetitionsDialogState extends State<_RepetitionsDialog> {
           child: const Icon(Icons.check_rounded),
         ),
       ],
+    );
+  }
+}
+
+class _AddDialog extends ConsumerWidget {
+  const _AddDialog();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: allCircularBorderRadius,
+      ),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CommonButton(
+            onTap: () {
+              launchIntervalInput(
+                context,
+                IntervalInputDelegate(
+                  submitIcon: Icons.add_rounded,
+                  onSubmit: (intervalDefinition) {
+                    ref
+                        .read(intervalsSetupNotifierProvider.notifier)
+                        .add(IntervalDefinitionItem(intervalDefinition));
+
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            },
+            child: const FittedText('Interval'),
+          ),
+          const SizedBox(height: 32),
+          CommonButton(
+            onTap: () {
+              ref
+                  .read(intervalsSetupNotifierProvider.notifier)
+                  .add(const IntervalGroupItem());
+
+              Navigator.of(context).pop();
+            },
+            child: const FittedText('Group'),
+          ),
+        ],
+      ),
     );
   }
 }
