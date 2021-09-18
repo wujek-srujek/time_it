@@ -1,81 +1,245 @@
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
+import '../util/iterable_x.dart';
 import 'interval_definition.dart';
 import 'interval_group.dart';
 
 export 'interval_definition.dart';
 
 @immutable
-abstract class IntervalsSetupItem {
+abstract class IntervalsSetupItem with EquatableMixin {
   int get repetitions;
+
+  const IntervalsSetupItem();
+
+  IntervalsSetupItem withRepetitions(int repetitions);
+}
+
+class IntervalGroupItem extends IntervalsSetupItem {
+  @override
+  final int repetitions;
+
+  const IntervalGroupItem({
+    this.repetitions = 1,
+  }) : assert(repetitions >= 1);
+
+  @override
+  IntervalGroupItem withRepetitions(int repetitions) =>
+      IntervalGroupItem(repetitions: repetitions);
+
+  @override
+  List<Object?> get props => [repetitions];
 }
 
 class IntervalDefinitionItem extends IntervalsSetupItem {
   final IntervalDefinition intervalDefinition;
 
-  IntervalDefinitionItem(this.intervalDefinition);
+  const IntervalDefinitionItem(this.intervalDefinition);
 
   @override
   int get repetitions => intervalDefinition.repetitions;
+
+  @override
+  IntervalDefinitionItem withRepetitions(int repetitions) =>
+      IntervalDefinitionItem(
+        intervalDefinition.copyWith(newRepetitions: repetitions),
+      );
+
+  @override
+  List<Object?> get props => [repetitions, intervalDefinition];
 }
 
-class IntervalsSetupNotifier extends StateNotifier<List<IntervalsSetupItem>> {
-  IntervalsSetupNotifier() : super(const []);
+@immutable
+class GroupedIntervalsSetupItem with EquatableMixin {
+  final IntervalsSetupItem item;
+  final int group;
+  final bool isFirst;
+  final bool isLast;
+
+  const GroupedIntervalsSetupItem(
+    this.item, {
+    required this.group,
+    required this.isFirst,
+    required this.isLast,
+  });
+
+  GroupedIntervalsSetupItem _copyWith({
+    IntervalsSetupItem? newItem,
+    int? newGroup,
+    bool? newIsFirst,
+    bool? newIsLast,
+  }) {
+    // If changing the item, it must be of the same type.
+    assert(newItem == null || newItem.runtimeType == item.runtimeType);
+
+    return GroupedIntervalsSetupItem(
+      newItem ?? item,
+      group: newGroup ?? group,
+      isFirst: newIsFirst ?? isFirst,
+      isLast: newIsLast ?? isLast,
+    );
+  }
+
+  @override
+  List<Object?> get props => [item, group, isFirst, isLast];
+}
+
+@immutable
+class IntervalsSetup with EquatableMixin {
+  final List<GroupedIntervalsSetupItem> groupedItems;
+  final bool hasIntervals;
+
+  IntervalsSetup(
+    this.groupedItems, {
+    required this.hasIntervals,
+  }) :
+        // Make a sanity consistency check in debug only, no need to incur the
+        // performance penalty in release builds.
+        assert(hasIntervals ==
+            groupedItems.any(
+              (groupedItem) => groupedItem.item is IntervalDefinitionItem,
+            ));
+
+  IntervalsSetup.initial() : this(const [], hasIntervals: false);
+
+  @override
+  List<Object?> get props => [groupedItems, hasIntervals];
+}
+
+// Modification operations work with [Iterable]s for performance - this way
+// creating a new state and collecting all the necessary information along the
+// way is done using a single iteration only.
+class IntervalsSetupNotifier extends StateNotifier<IntervalsSetup> {
+  IntervalsSetupNotifier() : this.seeded(IntervalsSetup.initial());
+
+  @visibleForTesting
+  IntervalsSetupNotifier.seeded(IntervalsSetup state) : super(state);
 
   void add(IntervalsSetupItem item) {
-    state = [
-      ...state,
-      item,
-    ];
+    _recalculateState(
+      state.groupedItems.unwrapped.followedBy([item]),
+    );
   }
 
   void remove(int index) {
-    state = [
-      ...state..removeAt(index),
-    ];
+    final groupedItems = state.groupedItems;
+    _recalculateState(
+      groupedItems
+          .getRange(0, index)
+          .followedBy(groupedItems.getRange(index + 1, groupedItems.length))
+          .unwrapped,
+    );
   }
 
-  void move({
-    required int oldIndex,
-    required int newIndex,
-  }) {
-    final newIntervalDefinitions = [...state];
-    final movedIntervalDefinition = newIntervalDefinitions.removeAt(oldIndex);
-    final insertionIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
-    newIntervalDefinitions.insert(insertionIndex, movedIntervalDefinition);
+  /// Moves the item from one place in the list to another.
+  ///
+  /// While this operation is performed the list isn't modified, i.e. [newIndex]
+  /// is the insertion point into the current list, without first removing the
+  /// item at [oldIndex] (imagine the moved item to be 'cloned' for a short
+  /// period of time). Due to this, moving the item down / further in the list
+  /// requires [newIndex] to take this into account.
+  void move({required int oldIndex, required int newIndex}) {
+    if (newIndex == oldIndex || newIndex == oldIndex + 1) {
+      // Moving to right before or right after itself is a no-op, see method
+      // docs for more info about why indices might seem counter-intuitive.
+      return;
+    }
 
-    state = newIntervalDefinitions;
+    final groupedItems = state.groupedItems;
+    final Iterable<GroupedIntervalsSetupItem> iterable;
+    if (oldIndex < newIndex) {
+      // Moving down the list.
+      iterable = groupedItems
+          .getRange(0, oldIndex)
+          .followedBy(groupedItems.getRange(oldIndex + 1, newIndex))
+          .followedBy(groupedItems.getRange(oldIndex, oldIndex + 1))
+          .followedBy(groupedItems.getRange(newIndex, groupedItems.length));
+    } else {
+      // Moving up the list.
+      iterable = groupedItems
+          .getRange(0, newIndex)
+          .followedBy(groupedItems.getRange(oldIndex, oldIndex + 1))
+          .followedBy(groupedItems.getRange(newIndex, oldIndex))
+          .followedBy(groupedItems.getRange(oldIndex + 1, groupedItems.length));
+    }
+
+    _recalculateState(iterable.unwrapped);
   }
 
   void update({
     required int index,
     required IntervalsSetupItem item,
   }) {
-    final newIntervalDefinitions = [...state];
-    newIntervalDefinitions[index] = item;
-
-    state = newIntervalDefinitions;
+    final groupedItems = state.groupedItems;
+    _recalculateState(
+      groupedItems
+          .getRange(0, index)
+          .followedBy([groupedItems[index]._copyWith(newItem: item)])
+          .followedBy(groupedItems.getRange(index + 1, groupedItems.length))
+          .unwrapped,
+    );
   }
 
   void reset() {
-    state = const [];
+    state = IntervalsSetup.initial();
   }
 
-  // For now all items are IntervalDefinitionItems (the UI doesn't know groups
-  // yet) so wrap them in a single group. This will not be necessary once the UI
-  // correctly supports groups and will be replaced by a method returning a list
-  // of them.
+  // For now the timer doesn't support groups so let's flatten all
+  // IntervalDefinitionItems into a single group.
   IntervalGroup intervalGroup(int repetitions) => IntervalGroup(
-        intervalDefinitions: state
+        intervalDefinitions: state.groupedItems.unwrapped
             .whereType<IntervalDefinitionItem>()
             .map((item) => item.intervalDefinition)
             .toList(),
         repetitions: repetitions,
       );
+
+  void _recalculateState(Iterable<IntervalsSetupItem> items) {
+    final recalculated = <GroupedIntervalsSetupItem>[];
+    var hasIntervals = false;
+    if (items.isNotEmpty) {
+      var group = -1;
+      for (final enumeration in items.withNext().enumerate()) {
+        final index = enumeration.first;
+        final itemWithNext = enumeration.second;
+        final item = itemWithNext.first;
+        final nextItem = itemWithNext.second;
+
+        // If not a group at items[0] a 'virtual' first group is implied. This
+        // makes the UI less cluttered for simplest use cases.
+        final isFirst = item is IntervalGroupItem || index == 0;
+        final isLast = nextItem == null || nextItem is IntervalGroupItem;
+        if (isFirst) {
+          ++group;
+        }
+
+        if (!hasIntervals && item is IntervalDefinitionItem) {
+          hasIntervals = true;
+        }
+
+        recalculated.add(GroupedIntervalsSetupItem(
+          item,
+          group: group,
+          isFirst: isFirst,
+          isLast: isLast,
+        ));
+      }
+    }
+
+    state = IntervalsSetup(
+      recalculated,
+      hasIntervals: hasIntervals,
+    );
+  }
 }
 
-final intervalsSetupNotifierProvider = StateNotifierProvider.autoDispose<
-    IntervalsSetupNotifier, List<IntervalsSetupItem>>(
+final intervalsSetupNotifierProvider =
+    StateNotifierProvider.autoDispose<IntervalsSetupNotifier, IntervalsSetup>(
   (ref) => IntervalsSetupNotifier(),
 );
+
+extension _IterableOfGroupedItemX on Iterable<GroupedIntervalsSetupItem> {
+  Iterable<IntervalsSetupItem> get unwrapped => map((gi) => gi.item);
+}

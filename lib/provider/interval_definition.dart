@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class IntervalDefinition {
+class IntervalDefinition with EquatableMixin {
   final int hours;
   final int minutes;
   final int seconds;
@@ -39,4 +40,7 @@ class IntervalDefinition {
         minutes: minutes,
         seconds: seconds,
       );
+
+  @override
+  List<Object?> get props => [hours, minutes, seconds, repetitions];
 }

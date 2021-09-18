@@ -48,22 +48,22 @@ class _IntervalsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(intervalsSetupNotifierProvider);
+    final setup = ref.watch(intervalsSetupNotifierProvider);
 
     final leaveBehindIndicatorColor = Theme.of(context).colorScheme.error;
 
     return ReorderableListView.builder(
-      itemCount: items.length,
+      itemCount: setup.groupedItems.length,
       onReorder: (oldIndex, newIndex) {
         ref
             .read(intervalsSetupNotifierProvider.notifier)
             .move(oldIndex: oldIndex, newIndex: newIndex);
       },
       itemBuilder: (context, index) {
-        final item = items[index];
+        final groupedItem = setup.groupedItems[index];
 
         return Dismissible(
-          key: ObjectKey(item),
+          key: ObjectKey(groupedItem),
           background: Container(
             color: leaveBehindIndicatorColor,
           ),
@@ -74,7 +74,7 @@ class _IntervalsList extends ConsumerWidget {
             index: index,
             // Safe for now, the UI doesn't support anything else yet.
             intervalDefinition:
-                (item as IntervalDefinitionItem).intervalDefinition,
+                (groupedItem.item as IntervalDefinitionItem).intervalDefinition,
           ),
         );
       },
@@ -172,10 +172,10 @@ class _ResetButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(intervalsSetupNotifierProvider);
+    final setup = ref.watch(intervalsSetupNotifierProvider);
 
     return Activation(
-      isActive: items.isNotEmpty,
+      isActive: setup.groupedItems.isNotEmpty,
       child: CommonButton.destructive(
         onLongPress: () {
           ref.read(intervalsSetupNotifierProvider.notifier).reset();
@@ -217,10 +217,10 @@ class _StartButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(intervalsSetupNotifierProvider);
+    final setup = ref.watch(intervalsSetupNotifierProvider);
 
     return Activation(
-      isActive: items.isNotEmpty,
+      isActive: setup.hasIntervals,
       child: CommonButton.primary(
         onTap: () async {
           final repetitions = await showDialog<int>(
