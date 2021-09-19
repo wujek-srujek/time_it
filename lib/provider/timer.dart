@@ -15,12 +15,13 @@ enum TimerStatus {
   completed,
 }
 
+@immutable
 class IntervalInfo {
   final Duration interval;
   final int ordinal;
   final int totalCount;
 
-  IntervalInfo({
+  const IntervalInfo({
     required this.interval,
     required this.ordinal,
     required this.totalCount,
@@ -64,15 +65,30 @@ class TimerState {
 class TimerNotifier extends StateNotifier<TimerState> {
   static const _defaultRefreshInterval = Duration(milliseconds: 100);
 
-  final _IntervalsEngine _engine;
+  final Iterable<IntervalInfo> _intervalInfos;
   final _TimerDelegate _delegate;
+
+  Iterator<IntervalInfo> _iterator;
 
   late Ticker _ticker;
   late StreamSubscription<Ticker> _tickerSubscription;
 
-  TimerNotifier(this._engine, this._delegate)
-      : super(TimerState._(
-          intervalInfo: _engine.next,
+  factory TimerNotifier(
+    Iterable<IntervalInfo> intervalInfos,
+    _TimerDelegate delegate,
+  ) =>
+      TimerNotifier._(
+        intervalInfos,
+        intervalInfos.iterator,
+        delegate,
+      );
+
+  TimerNotifier._(
+    this._intervalInfos,
+    this._iterator,
+    this._delegate,
+  ) : super(TimerState._(
+          intervalInfo: _iterator.nextOrNull,
           elapsed: Duration.zero,
           status: TimerStatus.stopped,
         )) {
@@ -94,9 +110,9 @@ class TimerNotifier extends StateNotifier<TimerState> {
   void restart() {
     _tearDown();
 
-    _engine.reset();
+    _iterator = _intervalInfos.iterator;
     state = TimerState._(
-      intervalInfo: _engine.next,
+      intervalInfo: _iterator.nextOrNull,
       elapsed: Duration.zero,
       status: TimerStatus.running,
     );
@@ -164,14 +180,14 @@ class TimerNotifier extends StateNotifier<TimerState> {
     // Depending on that the engine says, the timer either completes or goes on
     // to process the next interval.
 
-    final movedNext = _engine.moveNext();
+    final movedNext = _iterator.moveNext();
     if (movedNext) {
       _delegate.onIntervalComplete();
 
       _tearDown();
 
       state = TimerState._(
-        intervalInfo: _engine.current,
+        intervalInfo: _iterator.current,
         elapsed: Duration.zero,
         status: TimerStatus.running,
       );
@@ -228,7 +244,7 @@ final timerNotifierProvider =
     final player = ref.watch(playerProvider);
 
     return TimerNotifier(
-      _IntervalsEngine.forGroups(intervalGroups),
+      IntervalInfoIterable(intervalGroups),
       _TimerDelegate(
         onStart: keepAwake.enable,
         onStop: keepAwake.disable,
@@ -253,127 +269,42 @@ class _TimerDelegate {
   });
 }
 
-abstract class _IntervalsEngine extends Iterator<IntervalInfo?> {
-  IntervalInfo? get next => moveNext() ? current : null;
-
-  void reset();
-
-  static _IntervalsEngine forGroups(List<IntervalGroup> intervalGroups) {
-    return intervalGroups.isEmpty
-        ? _EmptyIntervalsEngine()
-        : _NonEmptyIntervalsEngine(intervalGroups.first);
-  }
+extension _IteratorX<T> on Iterator<T> {
+  T? get nextOrNull => moveNext() ? current : null;
 }
 
-class _EmptyIntervalsEngine extends _IntervalsEngine {
-  late bool _hasNext;
+@visibleForTesting
+class IntervalInfoIterable extends Iterable<IntervalInfo> {
+  final Iterable<IntervalGroup> _intervalGroups;
+  final int _length;
 
-  _EmptyIntervalsEngine() {
-    reset();
-  }
+  IntervalInfoIterable(this._intervalGroups)
+      : _length = _intervalGroups.fold<int>(
+          0,
+          (accumulator, group) => accumulator + group.intervalCount,
+        );
 
   @override
-  bool moveNext() {
-    if (_hasNext) {
-      _hasNext = false;
+  int get length => _length;
 
-      return true;
+  @override
+  Iterator<IntervalInfo> get iterator => _inflated.iterator;
+
+  Iterable<IntervalInfo> get _inflated sync* {
+    var ordinal = 0;
+    for (final group in _intervalGroups) {
+      for (var g = 1; g <= group.repetitions; ++g) {
+        for (final intervalDefinition in group.intervalDefinitions) {
+          final interval = intervalDefinition.toDuration();
+          for (var i = 1; i <= intervalDefinition.repetitions; ++i) {
+            yield IntervalInfo(
+              interval: interval,
+              ordinal: ++ordinal,
+              totalCount: length,
+            );
+          }
+        }
+      }
     }
-
-    return false;
   }
-
-  @override
-  IntervalInfo? get current => null;
-
-  @override
-  void reset() {
-    _hasNext = true;
-  }
-}
-
-class _NonEmptyIntervalsEngine extends _IntervalsEngine {
-  final IntervalGroup _intervalGroup;
-  final int _totalCount;
-
-  late Iterator<IntervalDefinition> _groupRepetitionIterator;
-  late int _repetitionsRemaining;
-  late int _ordinal;
-
-  _NonEmptyIntervalsEngine(this._intervalGroup)
-      : _totalCount = _intervalGroup.intervalCount {
-    reset();
-  }
-
-  @override
-  bool moveNext() {
-    if (_groupRepetitionIterator.moveNext()) {
-      ++_ordinal;
-
-      return true;
-    }
-
-    if (_repetitionsRemaining == 0) {
-      return false;
-    }
-
-    _resetGroupRepetitionIterator();
-
-    return moveNext();
-  }
-
-  @override
-  IntervalInfo get current => IntervalInfo(
-        interval: _groupRepetitionIterator.current.toDuration(),
-        ordinal: _ordinal,
-        totalCount: _totalCount,
-      );
-
-  @override
-  IntervalInfo? get next => moveNext() ? current : null;
-
-  @override
-  void reset() {
-    _repetitionsRemaining = _intervalGroup.repetitions;
-    _ordinal = 0;
-    _resetGroupRepetitionIterator();
-  }
-
-  void _resetGroupRepetitionIterator() {
-    _groupRepetitionIterator = _IntervalGroupRepetitionIterator(
-      _intervalGroup.intervalDefinitions.iterator,
-    );
-    --_repetitionsRemaining;
-  }
-}
-
-/// Iterates over all [IntervalDefinition]s taking repetitions into account.
-///
-/// This essentially performs a single repetition of [IntervalGroup].
-class _IntervalGroupRepetitionIterator implements Iterator<IntervalDefinition> {
-  final Iterator<IntervalDefinition> _iterator;
-
-  int _currentRepetitionsRemaining;
-
-  _IntervalGroupRepetitionIterator(this._iterator)
-      : _currentRepetitionsRemaining = 0;
-
-  @override
-  bool moveNext() {
-    if (_currentRepetitionsRemaining > 0) {
-      --_currentRepetitionsRemaining;
-
-      return true;
-    }
-
-    final movedNext = _iterator.moveNext();
-    if (movedNext) {
-      _currentRepetitionsRemaining = _iterator.current.repetitions - 1;
-    }
-
-    return movedNext;
-  }
-
-  @override
-  IntervalDefinition get current => _iterator.current;
 }

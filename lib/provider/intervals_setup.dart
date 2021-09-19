@@ -107,37 +107,42 @@ class IntervalsSetup with EquatableMixin {
   @override
   List<Object?> get props => [groupedItems, hasIntervals];
 
-  // For now the timer doesn't support groups so let's flatten/unwind all
-  // IntervalDefinitionItems into a single group considering all repetitions.
-  IntervalGroup toIntervalGroup() {
-    final intervalDefinitions = <IntervalDefinition>[];
-    var groupRepetitions = 1;
-    var groupedIntervals = <IntervalDefinition>[];
-    for (final groupedItemWithNext in groupedItems.withNext()) {
-      final groupedItem = groupedItemWithNext.first;
+  List<IntervalGroup> toIntervalGroups() {
+    final intervalGroups = <IntervalGroup>[];
+
+    // Initialize with the 'virtual' group in there is no explicit one.
+    var currentGroupItem = const IntervalGroupItem();
+    var groupedIntervalDefinitions = <IntervalDefinition>[];
+
+    void terminateIntervalGroup() {
+      if (groupedIntervalDefinitions.isNotEmpty) {
+        intervalGroups.add(IntervalGroup(
+          intervalDefinitions: groupedIntervalDefinitions,
+          repetitions: currentGroupItem.repetitions,
+        ));
+
+        groupedIntervalDefinitions = [];
+      }
+    }
+
+    for (final groupedItem in groupedItems) {
       final item = groupedItem.item;
-      if (item is IntervalGroupItem || groupedItemWithNext.second == null) {
-        // Add the very last interval definition.
-        if (item is IntervalDefinitionItem) {
-          groupedIntervals.add(item.intervalDefinition);
-        }
-        // Add collected interval definitions from terminated group with its
-        // repetitions.
-        for (var i = 0; i < groupRepetitions; ++i) {
-          intervalDefinitions.addAll(groupedIntervals);
-        }
-        groupRepetitions = item.repetitions;
-        groupedIntervals = [];
+
+      if (item is IntervalGroupItem) {
+        terminateIntervalGroup();
+
+        currentGroupItem = item;
       } else if (item is IntervalDefinitionItem) {
-        groupedIntervals.add(item.intervalDefinition);
+        groupedIntervalDefinitions.add(item.intervalDefinition);
       } else {
         assert(false, 'unknown item type $item');
       }
     }
 
-    return IntervalGroup(
-      intervalDefinitions: intervalDefinitions,
-    );
+    // The last group doesn't have a group to follow so we terminate it here.
+    terminateIntervalGroup();
+
+    return intervalGroups;
   }
 }
 

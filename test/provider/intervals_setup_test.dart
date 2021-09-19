@@ -1,9 +1,10 @@
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
+import 'package:time_it/provider/interval_group.dart';
 import 'package:time_it/provider/intervals_setup.dart';
 
 void main() {
-  group('IntervalsSetup creation', () {
+  group('IntervalsSetup', () {
     for (final stateCreator in [
       () => IntervalsSetup(
             const [],
@@ -48,10 +49,98 @@ void main() {
             hasIntervals: false,
           ),
     ]) {
-      test("fails for inconsistent 'hasIntervals'", () {
+      test("creation fails for inconsistent 'hasIntervals'", () {
         expect(
           stateCreator,
           throwsA(isA<AssertionError>()),
+        );
+      });
+    }
+
+    for (final config in [
+      _SetupTestConfig(
+        input: [
+          _groupedIntervalItem(1, group: 0, isFirst: true, isLast: true),
+        ],
+        expected: [
+          IntervalGroup(
+            intervalDefinitions: const [
+              IntervalDefinition(seconds: 1),
+            ],
+          ),
+        ],
+      ),
+      _SetupTestConfig(
+        input: [
+          _groupedIntervalItem(1, group: 0, isFirst: true, isLast: false),
+          _groupedIntervalItem(2, group: 0, isFirst: false, isLast: true),
+        ],
+        expected: [
+          IntervalGroup(
+            intervalDefinitions: const [
+              IntervalDefinition(seconds: 1),
+              IntervalDefinition(seconds: 2),
+            ],
+          ),
+        ],
+      ),
+      _SetupTestConfig(
+        input: [
+          _groupedGroupItem(group: 0, isFirst: true, isLast: false),
+          _groupedIntervalItem(1, group: 0, isFirst: false, isLast: false),
+          _groupedIntervalItem(2, group: 0, isFirst: false, isLast: true),
+        ],
+        expected: [
+          IntervalGroup(
+            intervalDefinitions: const [
+              IntervalDefinition(seconds: 1),
+              IntervalDefinition(seconds: 2),
+            ],
+          ),
+        ],
+      ),
+      _SetupTestConfig(
+        input: [
+          _groupedGroupItem(group: 0, isFirst: true, isLast: false),
+          _groupedIntervalItem(1, group: 0, isFirst: false, isLast: true),
+          _groupedGroupItem(group: 1, isFirst: true, isLast: false),
+          _groupedIntervalItem(2, group: 1, isFirst: false, isLast: true),
+        ],
+        expected: [
+          IntervalGroup(
+            intervalDefinitions: const [
+              IntervalDefinition(seconds: 1),
+            ],
+          ),
+          IntervalGroup(
+            intervalDefinitions: const [
+              IntervalDefinition(seconds: 2),
+            ],
+          ),
+        ],
+      ),
+      _SetupTestConfig(
+        input: [
+          _groupedGroupItem(group: 0, isFirst: true, isLast: false),
+          _groupedIntervalItem(1, group: 0, isFirst: false, isLast: true),
+          _groupedGroupItem(group: 1, isFirst: true, isLast: false),
+        ],
+        expected: [
+          IntervalGroup(
+            intervalDefinitions: const [
+              IntervalDefinition(seconds: 1),
+            ],
+          ),
+        ],
+      ),
+    ]) {
+      test('extracting interval groups works', () {
+        expect(
+          IntervalsSetup(
+            config.input,
+            hasIntervals: true,
+          ).toIntervalGroups(),
+          config.expected,
         );
       });
     }
@@ -618,6 +707,17 @@ void main() {
 }
 
 // Helpers.
+
+@immutable
+class _SetupTestConfig {
+  final List<GroupedIntervalsSetupItem> input;
+  final List<IntervalGroup> expected;
+
+  const _SetupTestConfig({
+    required this.input,
+    required this.expected,
+  });
+}
 
 @immutable
 class _NotifierTestConfig {

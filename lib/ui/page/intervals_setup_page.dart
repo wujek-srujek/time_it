@@ -259,9 +259,8 @@ class _StartButton extends ConsumerWidget {
       isActive: setup.hasIntervals,
       child: CommonButton.primary(
         onTap: () async {
-          ref.read(workoutIntervalsProvider.notifier).state = [
-            setup.toIntervalGroup(),
-          ];
+          ref.read(workoutIntervalsProvider.notifier).state =
+              setup.toIntervalGroups();
 
           await launchIntervals(context);
         },
