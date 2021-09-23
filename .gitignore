@@ -48,3 +48,6 @@ app.*.map.json
 # Firebase config files
 google-services.json
 GoogleService-Info.plist
+
+# Coverage reports
+/coverage/

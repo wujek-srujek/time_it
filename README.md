@@ -39,3 +39,21 @@ mentioned above by removing the step creating the dummy Firebase config file.
 # Used Firebase features
 
 - Crashlytics.
+
+# Test coverage
+
+There is nothing to be proud of, but there do exist a few tests. Running them
+with
+```shell
+flutter test --coverage
+```
+will create a coverage report in `coverage/lcov.info`. Running
+```shell
+genhtml coverage/lcov.info -o coverage/html
+```
+will generate an HTML report.
+
+To get the `genhtml` tool you need to install LCOV, e.g. macOS with Homebrew:
+```shell
+brew install lcov
+```
