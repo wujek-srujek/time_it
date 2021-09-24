@@ -73,7 +73,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
   late Ticker _ticker;
   late StreamSubscription<Ticker> _tickerSubscription;
 
-  factory TimerNotifier(
+  factory TimerNotifier._create(
     Iterable<IntervalInfo> intervalInfos,
     _TimerDelegate delegate,
   ) =>
@@ -243,7 +243,7 @@ final timerNotifierProvider =
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 
-    return TimerNotifier(
+    return TimerNotifier._create(
       IntervalInfoIterable(intervalGroups),
       _TimerDelegate(
         onStart: keepAwake.enable,
