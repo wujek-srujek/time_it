@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../provider/interval_group.dart';
 import '../../provider/timer.dart';
+import '../../provider/workout_intervals.dart';
 import '../util/timer_widget_ref_x.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
 import '../widget/common/page_scaffold.dart';
 
-class WorkoutPage extends StatefulWidget {
+class WorkoutPage extends ConsumerStatefulWidget {
+  final List<IntervalGroup> intervalGroups;
   final Widget topWidget;
   final Widget bottomWidget;
   final List<Widget> menuItems;
 
   const WorkoutPage({
+    required this.intervalGroups,
     required this.topWidget,
     required this.bottomWidget,
     this.menuItems = const [],
@@ -23,7 +27,7 @@ class WorkoutPage extends StatefulWidget {
   _WorkoutPageState createState() => _WorkoutPageState();
 }
 
-class _WorkoutPageState extends State<WorkoutPage>
+class _WorkoutPageState extends ConsumerState<WorkoutPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
 
@@ -37,6 +41,8 @@ class _WorkoutPageState extends State<WorkoutPage>
       duration: animationDuration,
       vsync: this,
     );
+
+    ref.read(workoutIntervalsProvider.notifier).state = widget.intervalGroups;
   }
 
   @override
