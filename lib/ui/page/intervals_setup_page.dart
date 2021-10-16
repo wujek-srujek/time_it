@@ -31,7 +31,8 @@ class IntervalsSetupPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
                 _ResetButton(),
-                _AddButton(),
+                _AddIntervalButton(),
+                _AddGroupButton(),
                 _StartButton(),
               ],
             ),
@@ -230,19 +231,44 @@ class _ResetButton extends ConsumerWidget {
   }
 }
 
-class _AddButton extends ConsumerWidget {
-  const _AddButton();
+class _AddIntervalButton extends ConsumerWidget {
+  const _AddIntervalButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonButton(
       onTap: () {
-        showDialog<void>(
-          context: context,
-          builder: (context) => const _AddDialog(),
+        launchIntervalInput(
+          context,
+          IntervalInputDelegate(
+            submitIcon: Icons.add_rounded,
+            onSubmit: (intervalDefinition) {
+              ref
+                  .read(intervalsSetupNotifierProvider.notifier)
+                  .add(IntervalDefinitionItem(intervalDefinition));
+
+              Navigator.of(context).pop();
+            },
+          ),
         );
       },
-      child: const Icon(Icons.add_rounded),
+      child: const Icon(Icons.timelapse_rounded),
+    );
+  }
+}
+
+class _AddGroupButton extends ConsumerWidget {
+  const _AddGroupButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonButton(
+      onTap: () {
+        ref
+            .read(intervalsSetupNotifierProvider.notifier)
+            .add(const IntervalGroupItem());
+      },
+      child: const Icon(Icons.list_alt_rounded),
     );
   }
 }
@@ -308,54 +334,6 @@ class _RepetitionsDialogState extends State<_RepetitionsDialog> {
           child: const Icon(Icons.check_rounded),
         ),
       ],
-    );
-  }
-}
-
-class _AddDialog extends ConsumerWidget {
-  const _AddDialog();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: allCircularBorderRadius,
-      ),
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CommonButton(
-            onTap: () {
-              launchIntervalInput(
-                context,
-                IntervalInputDelegate(
-                  submitIcon: Icons.add_rounded,
-                  onSubmit: (intervalDefinition) {
-                    ref
-                        .read(intervalsSetupNotifierProvider.notifier)
-                        .add(IntervalDefinitionItem(intervalDefinition));
-
-                    Navigator.of(context).pop();
-                  },
-                ),
-              );
-            },
-            child: const FittedText('Interval'),
-          ),
-          const SizedBox(height: 32),
-          CommonButton(
-            onTap: () {
-              ref
-                  .read(intervalsSetupNotifierProvider.notifier)
-                  .add(const IntervalGroupItem());
-
-              Navigator.of(context).pop();
-            },
-            child: const FittedText('Group'),
-          ),
-        ],
-      ),
     );
   }
 }
