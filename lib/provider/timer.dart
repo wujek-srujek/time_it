@@ -87,11 +87,13 @@ class TimerNotifier extends StateNotifier<TimerState> {
     this._intervalInfos,
     this._iterator,
     this._delegate,
-  ) : super(TimerState._(
-          intervalInfo: _iterator.nextOrNull,
-          elapsed: Duration.zero,
-          status: TimerStatus.stopped,
-        )) {
+  ) : super(
+          TimerState._(
+            intervalInfo: _iterator.nextOrNull,
+            elapsed: Duration.zero,
+            status: TimerStatus.stopped,
+          ),
+        ) {
     _setUp();
   }
 
@@ -108,7 +110,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
   }
 
   void restart() {
-    _tearDown();
+    unawaited(_tearDown());
 
     _iterator = _intervalInfos.iterator;
     state = TimerState._(
@@ -124,7 +126,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
   @override
   void dispose() {
-    _tearDown();
+    unawaited(_tearDown());
 
     if (!_ticker.isDisposed) {
       final wasRunning = _ticker.isRunning;
@@ -158,8 +160,8 @@ class TimerNotifier extends StateNotifier<TimerState> {
     );
   }
 
-  void _tearDown() {
-    _tickerSubscription.cancel();
+  Future<void> _tearDown() {
+    return _tickerSubscription.cancel();
   }
 
   void _start() {
@@ -177,14 +179,14 @@ class TimerNotifier extends StateNotifier<TimerState> {
   }
 
   void _done() {
-    // Depending on that the engine says, the timer either completes or goes on
+    // Depending on what the engine says, the timer either completes or goes on
     // to process the next interval.
 
     final movedNext = _iterator.moveNext();
     if (movedNext) {
       _delegate.onIntervalComplete();
 
-      _tearDown();
+      unawaited(_tearDown());
 
       state = TimerState._(
         intervalInfo: _iterator.current,

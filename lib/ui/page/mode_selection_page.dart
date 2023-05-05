@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -14,13 +16,13 @@ class ModeSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageScaffold(
+    return const PageScaffold(
       title: 'Choose mode',
       child: Stack(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
+            children: [
               _AmrapModeButton(),
               _StopwatchModeButton(),
               _IntervalsModeButton(),
@@ -29,7 +31,7 @@ class ModeSelectionPage extends StatelessWidget {
               ),
             ],
           ),
-          const Positioned(
+          Positioned(
             bottom: 0,
             child: _VersionInfo(),
           ),
@@ -74,12 +76,12 @@ class _AmrapModeButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return _ModeButton(
       modeName: 'AMRAP',
-      onTap: () => launchIntervalInput(
+      onTap: () async => launchIntervalInput(
         context,
         IntervalInputDelegate(
           submitIcon: Icons.play_arrow_rounded,
-          onSubmit: (intervalDefinition) {
-            launchAmrap(context, intervalDefinition);
+          onSubmit: (intervalDefinition) async {
+            return launchAmrap(context, intervalDefinition);
           },
         ),
       ),
@@ -96,7 +98,7 @@ class _StopwatchModeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ModeButton(
       modeName: 'Stopwatch',
-      onTap: () => launchStopwatch(context),
+      onTap: () async => launchStopwatch(context),
     );
   }
 }
@@ -112,7 +114,7 @@ class _IntervalsModeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ModeButton(
       modeName: 'Intervals',
-      onTap: () => Navigator.of(context).push<void>(
+      onTap: () async => Navigator.of(context).push<void>(
         MaterialPageRoute(
           builder: (context) => const IntervalsSetupPage(),
         ),
@@ -135,7 +137,7 @@ class _VersionInfoState extends State<_VersionInfo> {
   void initState() {
     super.initState();
 
-    _packageInfoFuture = PackageInfo.fromPlatform();
+    unawaited(_packageInfoFuture = PackageInfo.fromPlatform());
   }
 
   @override

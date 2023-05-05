@@ -11,26 +11,30 @@ import 'provider/player.dart';
 import 'ui/page/mode_selection_page.dart';
 
 Future<void> main() async {
-  await runZonedGuarded<Future<void>>(() async {
-    WidgetsFlutterBinding.ensureInitialized();
+  await runZonedGuarded<Future<void>>(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
 
-    await Firebase.initializeApp();
+      await Firebase.initializeApp();
 
-    if (kDebugMode) {
-      // Report crashes in release mode only.
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
-    }
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+      if (kDebugMode) {
+        // Report crashes in release mode only.
+        await FirebaseCrashlytics.instance
+            .setCrashlyticsCollectionEnabled(false);
+      }
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
 
-    await Player.init();
+      await Player.init();
 
-    runApp(TimeItApp());
-  }, (error, stack) => FirebaseCrashlytics.instance.recordError(error, stack));
+      runApp(TimeItApp());
+    },
+    (error, stack) => FirebaseCrashlytics.instance.recordError(error, stack),
+  );
 }
 
 class TimeItApp extends StatelessWidget {

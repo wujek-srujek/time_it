@@ -6,18 +6,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v2
+    - uses: actions/checkout@v3
+    - uses: subosito/flutter-action@v2
       with:
-        distribution: 'adopt'
-        java-version: '11'
-    - uses: subosito/flutter-action@v1
-      with:
-        flutter-version: '2.5.1'
+        flutter-version: '3.10'
     - run: flutter pub get
-    - run: flutter format --dry-run --set-exit-if-changed lib test
+    - run: dart format --output none --set-exit-if-changed lib test
     - run: flutter analyze
     - run: flutter test
     # Create a minimal dummy Firebase config file, the real one is unavailable.
     - run: echo '${{secrets.DUMMY_GOOGLE_SERVICES_JSON}}' > android/app/google-services.json
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: temurin
     - run: flutter build apk

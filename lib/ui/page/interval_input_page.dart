@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,11 +8,11 @@ import '../widget/common/common_features.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
 
-void launchIntervalInput(
+Future<void> launchIntervalInput(
   BuildContext context,
   IntervalInputDelegate delegate,
 ) {
-  Navigator.of(context).push(
+  return Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (context) => const IntervalInputPage(),
       settings: RouteSettings(
@@ -41,7 +39,7 @@ class IntervalInputPage extends ConsumerStatefulWidget {
   const IntervalInputPage();
 
   @override
-  _IntervalInputPageState createState() => _IntervalInputPageState();
+  ConsumerState<IntervalInputPage> createState() => _IntervalInputPageState();
 }
 
 class _IntervalInputPageState extends ConsumerState<IntervalInputPage> {

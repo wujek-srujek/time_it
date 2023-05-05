@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
 import '../util/iterable_x.dart';
-import 'interval_definition.dart';
 import 'interval_group.dart';
 
 export 'interval_definition.dart';
@@ -97,10 +96,12 @@ class IntervalsSetup with EquatableMixin {
   }) :
         // Make a sanity consistency check in debug only, no need to incur the
         // performance penalty in release builds.
-        assert(hasIntervals ==
-            groupedItems.any(
-              (groupedItem) => groupedItem.item is IntervalDefinitionItem,
-            ));
+        assert(
+          hasIntervals ==
+              groupedItems.any(
+                (groupedItem) => groupedItem.item is IntervalDefinitionItem,
+              ),
+        );
 
   IntervalsSetup.initial() : this(const [], hasIntervals: false);
 
@@ -116,10 +117,12 @@ class IntervalsSetup with EquatableMixin {
 
     void terminateIntervalGroup() {
       if (groupedIntervalDefinitions.isNotEmpty) {
-        intervalGroups.add(IntervalGroup(
-          intervalDefinitions: groupedIntervalDefinitions,
-          repetitions: currentGroupItem.repetitions,
-        ));
+        intervalGroups.add(
+          IntervalGroup(
+            intervalDefinitions: groupedIntervalDefinitions,
+            repetitions: currentGroupItem.repetitions,
+          ),
+        );
 
         groupedIntervalDefinitions = [];
       }
@@ -153,7 +156,7 @@ class IntervalsSetupNotifier extends StateNotifier<IntervalsSetup> {
   IntervalsSetupNotifier() : this.seeded(IntervalsSetup.initial());
 
   @visibleForTesting
-  IntervalsSetupNotifier.seeded(IntervalsSetup state) : super(state);
+  IntervalsSetupNotifier.seeded(super._state);
 
   void add(IntervalsSetupItem item) {
     _recalculateState(
@@ -247,12 +250,14 @@ class IntervalsSetupNotifier extends StateNotifier<IntervalsSetup> {
           hasIntervals = true;
         }
 
-        recalculated.add(GroupedIntervalsSetupItem(
-          item,
-          group: group,
-          isFirst: isFirst,
-          isLast: isLast,
-        ));
+        recalculated.add(
+          GroupedIntervalsSetupItem(
+            item,
+            group: group,
+            isFirst: isFirst,
+            isLast: isLast,
+          ),
+        );
       }
     }
 

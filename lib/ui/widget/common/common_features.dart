@@ -9,7 +9,7 @@ const circularBorderRadius = Radius.circular(_borderRadius);
 final allCircularBorderRadius = BorderRadius.circular(_borderRadius);
 
 TextStyle textStyle(BuildContext context, {Color? color}) {
-  return Theme.of(context).textTheme.bodyText2!.copyWith(
+  return Theme.of(context).textTheme.bodyMedium!.copyWith(
     color: color,
     fontFeatures: [
       const FontFeature.tabularFigures(),

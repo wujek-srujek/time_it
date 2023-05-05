@@ -8,11 +8,11 @@ import 'widget/mode/menu_items.dart';
 import 'widget/mode/rounds_widget.dart';
 import 'widget/mode/stopwatch_widget.dart';
 
-void launchAmrap(
+Future<void> launchAmrap(
   BuildContext context,
   IntervalDefinition intervalDefinition,
 ) {
-  _launchWorkout(
+  return _launchWorkout(
     context,
     WorkoutPage(
       intervalGroups: [IntervalGroup.single(intervalDefinition)],
@@ -26,8 +26,8 @@ void launchAmrap(
   );
 }
 
-void launchStopwatch(BuildContext context) {
-  _launchWorkout(
+Future<void> launchStopwatch(BuildContext context) {
+  return _launchWorkout(
     context,
     const WorkoutPage(
       intervalGroups: [],

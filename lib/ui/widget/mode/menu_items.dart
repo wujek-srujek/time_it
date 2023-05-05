@@ -20,7 +20,7 @@ class RoundSummaryMenuButton extends ConsumerWidget {
       isActive: isActive,
       child: CommonButton.primary(
         onTap: isActive
-            ? () => Navigator.of(context).push(
+            ? () async => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (context) => const RoundSummaryPage(),
                   ),

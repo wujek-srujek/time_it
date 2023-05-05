@@ -80,13 +80,10 @@ class SizeDependentPadding extends StatelessWidget {
     switch (calculationBase) {
       case CalculationBase.width:
         baseSide = size.width;
-        break;
       case CalculationBase.height:
         baseSide = size.height;
-        break;
       case CalculationBase.smallerSide:
         baseSide = min(size.width, size.height);
-        break;
     }
 
     return baseSide;

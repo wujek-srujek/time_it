@@ -25,13 +25,10 @@ class TimerWidget extends ConsumerWidget {
     switch (timerStatus) {
       case TimerStatus.running:
         durationColor = colorScheme.primary;
-        break;
       case TimerStatus.stopped:
         durationColor = colorScheme.error;
-        break;
       case TimerStatus.completed:
         durationColor = colorScheme.secondary;
-        break;
     }
 
     return ModeWidget(

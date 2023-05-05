@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -5,40 +6,83 @@ import 'package:riverpod/riverpod.dart';
 
 /// A simple audio player.
 ///
-/// It doesn't allow playing multiple sounds simultaneously, neither does it
-/// offer any control over the audio (seeking, stopping, etc.). All its
-/// `playXXX` methods are of the 'fire-and-forget' variety.
+/// It allows for playing different sounds simultaneously; playing the same
+/// sound causes previous playback to be stopped.
+///
+/// It doesn't offer any control over the audio (seeking, stopping, etc.). All
+/// its `playXXX` methods are of the 'fire-and-forget' variety.
 class Player {
-  static Future<void> init() {
-    return _audioCache.loadAll([
-      _intervalCompletedFileName,
-      _workoutCompletedFileName,
-    ]);
+  static Future<void> init() async {
+    // The context affects all players created afterwards so do this first.
+    //
+    // While we would like to have ducking, on iOS it doesn't work - it doesn't
+    // revert other audio to its previous volume - so we don't use it, and also
+    // don't use it on Android for consistency.
+    //
+    // However, applying any context on Android causes our sounds to either
+    // stops other audio, or has ducking, so to actually have our sounds play on
+    // top of other audio without ducking we must not apply any context, hence
+    // the Platform check.
+    //
+    // Note to my future self: when testing this stuff, kill and redeploy the
+    // application as hot reloading does strange and confusing things to the
+    // states of the players, making it very hard to reasonably work with.
+    if (Platform.isIOS) {
+      await AudioPlayer.global.setAudioContext(
+        const AudioContext(
+          iOS: AudioContextIOS(
+            // Use the value and ignore the lint. If this ever changes to some
+            // other category, we want to keep this one. It was too hard to get
+            // right to just risk that a change in the lib breaks our settings.
+            // ignore: avoid_redundant_argument_values
+            category: AVAudioSessionCategory.playback,
+            options: [
+              AVAudioSessionOptions.mixWithOthers,
+            ],
+          ),
+        ),
+      );
+    }
+
+    _intervalCompletedPlayer = AudioPlayer();
+    _workoutCompletedPlayer = AudioPlayer();
+
+    return Future.wait([
+      _preparePlayer(_intervalCompletedPlayer, _intervalCompletedAsset),
+      _preparePlayer(_workoutCompletedPlayer, _workoutCompletedAsset),
+    ]).then((_) => null);
   }
 
   void playIntervalCompleted() {
-    _play(_intervalCompletedFileName);
+    _play(_intervalCompletedPlayer);
   }
 
   void playWorkoutCompleted() {
-    _play(_workoutCompletedFileName);
-  }
-
-  void _play(String fileName) {
-    _audioCache.play(fileName, mode: PlayerMode.LOW_LATENCY);
+    _play(_workoutCompletedPlayer);
   }
 }
 
-final playerProvider = Provider((ref) => Player());
-
-const _intervalCompletedFileName = 'interval_completed.mp3';
-const _workoutCompletedFileName = 'workout_completed.mp3';
-
-final _audioCache = AudioCache(
-  prefix: 'assets/audio/',
-  fixedPlayer: AudioPlayer(),
-  // 'duckAudio' is broken for Android so can't be used unconditionally. But it
-  // is necessary for iOS because otherwise any background music is paused.
-  // See https://github.com/luanpotter/audioplayers/issues/934.
-  duckAudio: Platform.isIOS,
+final playerProvider = Provider(
+  (ref) => Player(),
 );
+
+Future<void> _preparePlayer(AudioPlayer player, String asset) {
+  return Future.wait([
+    // I want to but I can't, streams don't work in this mode so the
+    // release mode setting doesn't work.
+    // player.setPlayerMode(PlayerMode.lowLatency),
+    player.setSourceAsset(asset),
+    player.setReleaseMode(ReleaseMode.stop),
+  ]);
+}
+
+void _play(AudioPlayer player) {
+  unawaited(player.stop().then((_) => player.resume()));
+}
+
+late AudioPlayer _intervalCompletedPlayer;
+late AudioPlayer _workoutCompletedPlayer;
+
+const _audioAssets = 'audio';
+const _intervalCompletedAsset = '$_audioAssets/interval_completed.mp3';
+const _workoutCompletedAsset = '$_audioAssets/workout_completed.mp3';

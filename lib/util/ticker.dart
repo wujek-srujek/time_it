@@ -58,7 +58,7 @@ class Ticker {
       stop();
     }
 
-    _streamController.close();
+    unawaited(_streamController.close());
   }
 
   Stream<Ticker> get stream => _streamController.stream;

@@ -24,7 +24,7 @@ class WorkoutPage extends ConsumerStatefulWidget {
   });
 
   @override
-  _WorkoutPageState createState() => _WorkoutPageState();
+  ConsumerState<WorkoutPage> createState() => _WorkoutPageState();
 }
 
 class _WorkoutPageState extends ConsumerState<WorkoutPage>

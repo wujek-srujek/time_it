@@ -75,7 +75,7 @@ String formatDuration(
 
   final sb = StringBuffer();
 
-  void _processComponent(TimeComponent component, int value) {
+  void processComponent(TimeComponent component, int value) {
     if (unpacked.includes(component) || forceComponent.includes(component)) {
       var string = value.toString();
       if (forceComponentPadding.includes(component)) {
@@ -85,19 +85,19 @@ String formatDuration(
     }
   }
 
-  _processComponent(TimeComponent.hour, unpacked.hours);
+  processComponent(TimeComponent.hour, unpacked.hours);
 
   if (sb.isNotEmpty) {
     sb.write(':');
   }
 
-  _processComponent(TimeComponent.minute, unpacked.minutes);
+  processComponent(TimeComponent.minute, unpacked.minutes);
 
   if (sb.isNotEmpty) {
     sb.write(':');
   }
 
-  _processComponent(TimeComponent.second, unpacked.seconds);
+  processComponent(TimeComponent.second, unpacked.seconds);
 
   if (decimalPlaces > 0) {
     if (sb.isNotEmpty) {

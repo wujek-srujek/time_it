@@ -18,18 +18,18 @@ class IntervalsSetupPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageScaffold(
+    return const PageScaffold(
       title: 'Define intervals',
       child: Column(
         children: [
-          const Expanded(
+          Expanded(
             child: _IntervalsList(),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: EdgeInsets.only(top: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children: [
                 _ResetButton(),
                 _AddIntervalButton(),
                 _AddGroupButton(),
@@ -172,8 +172,8 @@ class _IntervalsItemWidget extends ConsumerWidget {
     } else if (item is IntervalDefinitionItem) {
       return InkWell(
         borderRadius: allCircularBorderRadius,
-        onTap: () {
-          launchIntervalInput(
+        onTap: () async {
+          return launchIntervalInput(
             context,
             IntervalInputDelegate(
               submitIcon: Icons.refresh_rounded,
@@ -237,8 +237,8 @@ class _AddIntervalButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonButton(
-      onTap: () {
-        launchIntervalInput(
+      onTap: () async {
+        return launchIntervalInput(
           context,
           IntervalInputDelegate(
             submitIcon: Icons.add_rounded,
@@ -283,7 +283,7 @@ class _StartButton extends ConsumerWidget {
     return Activation(
       isActive: setup.hasIntervals,
       child: CommonButton.primary(
-        onTap: () => launchIntervals(context, setup.toIntervalGroups()),
+        onTap: () async => launchIntervals(context, setup.toIntervalGroups()),
         child: const Icon(Icons.play_arrow_rounded),
       ),
     );
