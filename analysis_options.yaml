@@ -10,9 +10,9 @@ linter:
   rules:
     # This full list is derived from the Flutter version we are using, check:
     # https://github.com/flutter/flutter/blob/<flutter version>/analysis_options.yaml.
-    # Also see https://dart-lang.github.io/linter/lints/options/options.html as reference.
-    # Easiest: copy this file, replace this list with the Flutter list in the copy, and
-    # compare differences, most interesting are removed and added lines.
+    # Also see https://dart.dev/tools/linter-rules/all as reference (replace 'all' for specific rules).
+    # Easiest: copy this file, replace the lint list in the copy with the one Flutter uses,
+    # and compare differences, most interesting are removed and added lines.
 
     - always_declare_return_types
     - always_put_control_body_on_new_line
@@ -92,7 +92,6 @@ linter:
     - implicit_call_tearoffs
     - implicit_reopen
     - invalid_case_patterns
-    - iterable_contains_unrelated_type
     - join_return_with_assignment
     - leading_newlines_in_multiline_strings
     - library_annotations
@@ -100,7 +99,6 @@ linter:
     - library_prefixes
     - library_private_types_in_public_api
     - lines_longer_than_80_chars
-    - list_remove_unrelated_type
     - literal_only_boolean_expressions
     - matching_super_parameters
     - missing_whitespace_between_adjacent_strings
@@ -112,6 +110,8 @@ linter:
     - no_literal_bool_comparisons
     - no_logic_in_create_state
     - no_runtimeType_toString
+    - no_self_assignments
+    - no_wildcard_variable_uses
     - non_constant_identifier_names
     - noop_primitive_operations
     - null_check_on_nullable_type_parameter
@@ -140,7 +140,7 @@ linter:
     - prefer_final_fields
     - prefer_final_in_for_each
     - prefer_final_locals
-    # - prefer_final_parameters # Makes the code less verbose and `parameter_assignments` makes params de-facto final.
+    # - prefer_final_parameters # Makes the code more verbose and `parameter_assignments` makes params de-facto final.
     - prefer_for_elements_to_map_fromIterable
     - prefer_foreach
     - prefer_function_declarations_over_variables

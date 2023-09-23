@@ -4,18 +4,20 @@ version: 0.8.0
 publish_to: none
 
 environment:
-  sdk: ^3.0.5
+  sdk: '>=3.1.2 <4.0.0'
+  flutter: '>=3.13.5'
 
 dependencies:
   audioplayers: ^4.1.0
   equatable: ^2.0.5
-  firebase_core: ^2.15.0
-  firebase_crashlytics: ^3.3.4
+  # TODO: Check if the new version still needs the workaround in gradle.properties.
+  firebase_core: ^2.16.0
+  firebase_crashlytics: ^3.3.6
   flutter:
     sdk: flutter
   flutter_riverpod: 1.0.0-dev.7
   meta: ^1.9.1
-  package_info_plus: ^4.0.2
+  package_info_plus: ^4.1.0
   riverpod: 1.0.0-dev.7
   wakelock_plus: ^1.1.1
 
@@ -23,7 +25,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
-  test: ^1.24.1
+  test: ^1.24.3
 
 flutter:
   assets:

@@ -15,14 +15,10 @@ class Player {
   static Future<void> init() async {
     // The context affects all players created afterwards so do this first.
     //
-    // While we would like to have ducking, on iOS it doesn't work - it doesn't
-    // revert other audio to its previous volume - so we don't use it, and also
-    // don't use it on Android for consistency.
-    //
-    // However, applying any context on Android causes our sounds to either
-    // stops other audio, or has ducking, so to actually have our sounds play on
-    // top of other audio without ducking we must not apply any context, hence
-    // the Platform check.
+    // Applying any context on Android causes our sounds to either stop other
+    // audio, or have ducking, so to actually have our sounds play on top of
+    // other audio without ducking we must not apply any context, hence the
+    // Platform check.
     //
     // Note to my future self: when testing this stuff, kill and redeploy the
     // application as hot reloading does strange and confusing things to the

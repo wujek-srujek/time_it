@@ -1,15 +1,8 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22'
-        classpath 'com.android.tools.build:gradle:8.0.2'
-        classpath 'com.google.gms:google-services:4.3.15'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.7'
-    }
+plugins {
+    id 'org.jetbrains.kotlin.android' version '1.9.10' apply false
+    id 'com.android.application' version '8.1.1' apply false
+    id 'com.google.gms.google-services' version '4.4.0' apply false
+    id 'com.google.firebase.crashlytics' version '2.9.9' apply false
 }
 
 allprojects {
@@ -19,14 +12,12 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+rootProject.layout.buildDirectory = '../build'
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
+    project.layout.buildDirectory = rootProject.layout.buildDirectory.dir(project.name)
     project.evaluationDependsOn(':app')
 }
 
 tasks.register('clean', Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }
