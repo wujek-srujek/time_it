@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:riverpod/riverpod.dart';
@@ -15,30 +14,21 @@ class Player {
   static Future<void> init() async {
     // The context affects all players created afterwards so do this first.
     //
-    // Applying any context on Android causes our sounds to either stop other
-    // audio, or have ducking, so to actually have our sounds play on top of
-    // other audio without ducking we must not apply any context, hence the
-    // Platform check.
-    //
     // Note to my future self: when testing this stuff, kill and redeploy the
     // application as hot reloading does strange and confusing things to the
-    // states of the players, making it very hard to reasonably work with.
-    if (Platform.isIOS) {
-      await AudioPlayer.global.setAudioContext(
-        const AudioContext(
-          iOS: AudioContextIOS(
-            // Use the value and ignore the lint. If this ever changes to some
-            // other category, we want to keep this one. It was too hard to get
-            // right to just risk that a change in the lib breaks our settings.
-            // ignore: avoid_redundant_argument_values
-            category: AVAudioSessionCategory.playback,
-            options: [
-              AVAudioSessionOptions.mixWithOthers,
-            ],
-          ),
+    // states of the players, making it very hard to sanely work with.
+    await AudioPlayer.global.setAudioContext(
+      const AudioContext(
+        android: AudioContextAndroid(
+          audioFocus: AndroidAudioFocus.none,
         ),
-      );
-    }
+        iOS: AudioContextIOS(
+          options: [
+            AVAudioSessionOptions.mixWithOthers,
+          ],
+        ),
+      ),
+    );
 
     _intervalCompletedPlayer = AudioPlayer();
     _workoutCompletedPlayer = AudioPlayer();
@@ -64,9 +54,7 @@ final playerProvider = Provider(
 
 Future<void> _preparePlayer(AudioPlayer player, String asset) {
   return Future.wait([
-    // I want to but I can't, streams don't work in this mode so the
-    // release mode setting doesn't work.
-    // player.setPlayerMode(PlayerMode.lowLatency),
+    player.setPlayerMode(PlayerMode.lowLatency),
     player.setSourceAsset(asset),
     player.setReleaseMode(ReleaseMode.stop),
   ]);
