@@ -1,6 +1,5 @@
 # TODO
 
-1. Decide what to do with Riverpod - either upgrade, or get rid of.
 1. Skipping to the next interval, going back to the previous one.
    1. With swiping?
 1. 'Intervals' mode setup mamagement:

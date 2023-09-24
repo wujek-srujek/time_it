@@ -22,7 +22,7 @@ extension TimerWidgetRefX on WidgetRef {
   }
 
   void listenTimerStatus(void Function(TimerStatus) listener) {
-    listen(_timerStatusSelector, listener);
+    listen(_timerStatusSelector, (previous, next) => listener(next));
   }
 }
 

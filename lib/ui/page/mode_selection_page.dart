@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../provider/interval_group.dart';
+import '../../provider/workout_intervals.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
@@ -81,7 +83,11 @@ class _AmrapModeButton extends ConsumerWidget {
         IntervalInputDelegate(
           submitIcon: Icons.play_arrow_rounded,
           onSubmit: (intervalDefinition) async {
-            return launchAmrap(context, intervalDefinition);
+            ref.read(workoutIntervalsProvider.notifier).state = [
+              IntervalGroup.single(intervalDefinition),
+            ];
+
+            return launchAmrap(context);
           },
         ),
       ),
@@ -106,7 +112,7 @@ class _StopwatchModeButton extends StatelessWidget {
 // In this mode, potentially multiple intervals are defined and the workout is
 // finished when all of them complete. `intervalsSetupNotifierProvider`'s life
 // spans the whole intervals setup; `intervalInputProvider` is created and
-// disposed multiple times, each time a new interval is dfined.
+// disposed multiple times, each time a new interval is defined.
 class _IntervalsModeButton extends StatelessWidget {
   const _IntervalsModeButton();
 

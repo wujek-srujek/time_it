@@ -241,7 +241,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 final timerNotifierProvider =
     StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
   (ref) {
-    final intervalGroups = ref.watch(workoutIntervalsProvider).state;
+    final intervalGroups = ref.watch(workoutIntervalsProvider);
     final keepAwake = ref.watch(keepAwakeProvider);
     final player = ref.watch(playerProvider);
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../provider/intervals_setup.dart';
+import '../../provider/workout_intervals.dart';
 import '../../util/duration_formatter.dart';
 import '../widget/common/activation.dart';
 import '../widget/common/common_button.dart';
@@ -283,7 +284,12 @@ class _StartButton extends ConsumerWidget {
     return Activation(
       isActive: setup.hasIntervals,
       child: CommonButton.primary(
-        onTap: () async => launchIntervals(context, setup.toIntervalGroups()),
+        onTap: () async {
+          ref.read(workoutIntervalsProvider.notifier).state =
+              setup.toIntervalGroups();
+
+          return launchIntervals(context);
+        },
         child: const Icon(Icons.play_arrow_rounded),
       ),
     );

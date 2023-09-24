@@ -274,10 +274,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_riverpod
-      sha256: e65ebd4bd6d0a73f9822aaa9395ddb7cb4fe73d6a686aa62cf1f4c3101f87371
+      sha256: "1bd39b04f1bcd217a969589777ca6bd642d116e3e5de65c3e6a8e8bdd8b178ec"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-dev.7"
+    version: "2.4.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -288,14 +288,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      sha256: "70776c4541e5cacfe45bcaf00fe79137b8c61aa34fb5765a05ce6c57fd72c6e9"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.14.3"
   frontend_server_client:
     dependency: transitive
     description:
@@ -548,10 +540,10 @@ packages:
     dependency: "direct main"
     description:
       name: riverpod
-      sha256: "0f4a606a237eba2964dabc8f833140bbdfa3e0cf6cd6547c14a3502044cfa4b3"
+      sha256: a600120d6f213a9922860eea1abc32597436edd5b2c4e73b91410f8c2af67d22
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-dev.7"
+    version: "2.4.0"
   shelf:
     dependency: transitive
     description:
