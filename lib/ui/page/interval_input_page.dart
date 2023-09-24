@@ -168,25 +168,30 @@ class _DotsTile extends StatelessWidget {
   }
 }
 
-const _submitButtonMarker = -1;
-
 class _DialWidget extends ConsumerWidget {
   const _DialWidget();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Widget mapper(int? digit) {
+    Widget mapper(int digit) {
       final Widget body;
-      if (digit == _submitButtonMarker) {
+      if (digit == _double0ButtonMarker) {
+        body = CommonButton(
+          onTap: () {
+            ref.read(intervalInputNotifierProvider.notifier)
+              ..addDigit(0)
+              ..addDigit(0);
+          },
+          child: const FittedText('00'),
+        );
+      } else if (digit == _submitButtonMarker) {
         body = const _SubmitButton();
-      } else if (digit != null) {
+      } else {
         body = CommonButton(
           onTap: () =>
               ref.read(intervalInputNotifierProvider.notifier).addDigit(digit),
           child: FittedText('$digit'),
         );
-      } else {
-        body = const SizedBox.shrink();
       }
 
       return Expanded(
@@ -197,7 +202,7 @@ class _DialWidget extends ConsumerWidget {
       );
     }
 
-    Widget makeRow(List<int?> digits) {
+    Widget makeRow(List<int> digits) {
       return Expanded(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -211,7 +216,7 @@ class _DialWidget extends ConsumerWidget {
         makeRow([1, 2, 3]),
         makeRow([4, 5, 6]),
         makeRow([7, 8, 9]),
-        makeRow([null, 0, _submitButtonMarker]),
+        makeRow([_double0ButtonMarker, 0, _submitButtonMarker]),
       ],
     );
   }
@@ -238,3 +243,6 @@ class _SubmitButton extends ConsumerWidget {
     );
   }
 }
+
+const _double0ButtonMarker = -1;
+const _submitButtonMarker = -2;
