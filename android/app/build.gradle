@@ -24,19 +24,23 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def javaVersion = JavaVersion.VERSION_1_8
+
 android {
     namespace 'com.szczyp.time_it'
 
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    // Use AGP default. Flutter uses older AGP versions, we update regularly,
+    // so the NDK version from Flutter is not the one we should use.
+    // ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = javaVersion.toString()
     }
 
     sourceSets {

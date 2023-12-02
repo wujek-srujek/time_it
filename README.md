@@ -61,7 +61,7 @@ brew install lcov
 # Upgrading checklist
 
 1. Upgrade Flutter, if available and desired.
-   1. Update `pubspec.yaml` to specify the same versions as defined unser `sdks` in `pubspec.lock`, for example:
+   1. Update `pubspec.yaml` to specify the same versions as defined under `sdks` in `pubspec.lock`, for example:
       ```yaml
       environment:
         sdk: '>=3.1.1 <4.0.0'
@@ -75,8 +75,7 @@ brew install lcov
 1. Possibly upgrade iOS tools (CocoaPods, ...).
 1. Possibly update iOS `IPHONEOS_DEPLOYMENT_TARGET`
    [here](ios/Runner.xcodeproj/project.pbxproj) and `platform` [here](ios/Podfile).
-1. Upgrade dependencies (`flutter pub upgrade`), observe specific notes in `pubspec.yaml`, if any.
-1. Update dependency versions in `pubspec.yaml` to correspond to `pubspec.lock`.
+1. Upgrade dependencies (`flutter pub upgrade --tighten`), observe specific notes in `pubspec.yaml`, if any.
 1. Update [lints](analysis_options.yaml) (see notes in the file).
 1. Build and test Android.
 1. Build and test iOS (this often results in file changes as well).

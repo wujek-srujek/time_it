@@ -60,12 +60,8 @@ class _WorkoutPageState extends State<WorkoutPage>
 
           final isCompleted = ref.watchTimerStatus() == TimerStatus.completed;
 
-          return WillPopScope(
-            // No idea why this is still broken and undocumented, but we need
-            // a workaround - setting to `null` instead of a function returning
-            // `Future.value(true)` keeps the 'swipe to go back' iOS gesture.
-            // https://github.com/flutter/flutter/issues/14203#issuecomment-644239576
-            onWillPop: isCompleted ? null : () => Future.value(false),
+          return PopScope(
+            canPop: isCompleted,
             child: child!,
           );
         },
