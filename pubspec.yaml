@@ -31,9 +31,17 @@ flutter:
     - assets/audio/
   uses-material-design: true
 
-# Run: flutter pub run flutter_launcher_icons:main
-flutter_icons:
+# Run: dart run flutter_launcher_icons
+flutter_launcher_icons:
   # Android uses adaptive icons only, no need for PNG generation.
   android: false
   ios: true
-  image_path_ios: images/launcher/stopwatch_ios.png
+  # Edit images/svg/stopwatch.svg in Inkscape:
+  # - dimensions (80% scaled down): x: 83.2 y: 51.2 w: 345.6 h: 409.6
+  # - color: Flutter theme primary color / Android launchForeground
+  # - export:
+  #   - no alpha channel
+  #   - dimensions: 1024 x 1024
+  #   - background color: Flutter theme background / Android launchBackground
+  #   - file path: see below
+  image_path_ios: images/svg/stopwatch.png
