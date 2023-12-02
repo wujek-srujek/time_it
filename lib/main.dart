@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -11,30 +12,39 @@ import 'provider/player.dart';
 import 'ui/page/mode_selection_page.dart';
 
 Future<void> main() async {
-  await runZonedGuarded<Future<void>>(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
-      await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
-      await Firebase.initializeApp();
+  await Firebase.initializeApp();
 
-      if (kDebugMode) {
-        // Report crashes in release mode only.
-        await FirebaseCrashlytics.instance
-            .setCrashlyticsCollectionEnabled(false);
-      }
-      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+  // The following Crashlytics setup means:
+  // 1. The default of automatically reporting crashes is used.
+  // 2. Flutter errors are handled in non-debug modes only (because only then
+  //  are error handlers installed).
+  // 3. Native errors are handled in all modes. To disable it, either change
+  //  native configuration (in Info.plist and AndroidManifest.xml) for debug,
+  //  or call __outside of the if block___
+  //  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode)
+  //  It is important to call it outside of the if block because this setting is
+  //  stored on the phone and shared between all modes, so developing in debug
+  //  mode and disabling this, and then subsequently installing in release mode
+  //  without reenabling it would not report crashes automatically.
+  if (!kDebugMode) {
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+    PlatformDispatcher.instance.onError = (exception, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(exception, stackTrace);
 
-      await Player.init();
+      return true;
+    };
+  }
 
-      runApp(TimeItApp());
-    },
-    (error, stack) => FirebaseCrashlytics.instance.recordError(error, stack),
-  );
+  await Player.init();
+
+  runApp(TimeItApp());
 }
 
 class TimeItApp extends StatelessWidget {
