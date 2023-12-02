@@ -53,7 +53,12 @@ class TimeItApp extends StatelessWidget {
     return ProviderScope(
       child: MaterialApp(
         title: 'Time it',
-        darkTheme: ThemeData.dark(),
+        darkTheme: ThemeData(
+          colorScheme: const ColorScheme.dark(
+            primary: Color(0xFF2196F3),
+            error: Colors.red,
+          ),
+        ),
         themeMode: ThemeMode.dark,
         home: const ModeSelectionPage(),
       ),
