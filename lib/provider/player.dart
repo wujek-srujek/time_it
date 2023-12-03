@@ -54,7 +54,9 @@ final playerProvider = Provider(
 
 Future<void> _preparePlayer(AudioPlayer player, String asset) {
   return Future.wait([
-    player.setPlayerMode(PlayerMode.lowLatency),
+    // I want to but I can't, streams don't work in this mode so the
+    // release mode setting doesn't work correctly.
+    // player.setPlayerMode(PlayerMode.lowLatency),
     player.setSourceAsset(asset),
     player.setReleaseMode(ReleaseMode.stop),
   ]);
