@@ -62,39 +62,56 @@ class TimerState {
 //   cancelled.
 // In all of the above cases, the user has terminated the workout in some way
 // and can use the app normally to prevent locking.
-class TimerNotifier extends StateNotifier<TimerState> {
+class TimerNotifier extends AutoDisposeNotifier<TimerState> {
   static const _defaultRefreshInterval = Duration(milliseconds: 100);
 
-  final Iterable<IntervalInfo> _intervalInfos;
-  final _TimerDelegate _delegate;
+  late Iterable<IntervalInfo> _intervalInfos;
+  late Iterator<IntervalInfo> _iterator;
 
-  Iterator<IntervalInfo> _iterator;
+  late _TimerDelegate _delegate;
 
   late Ticker _ticker;
   late StreamSubscription<Ticker> _tickerSubscription;
 
-  factory TimerNotifier._create(
-    Iterable<IntervalInfo> intervalInfos,
-    _TimerDelegate delegate,
-  ) =>
-      TimerNotifier._(
-        intervalInfos,
-        intervalInfos.iterator,
-        delegate,
-      );
+  TimerNotifier._();
 
-  TimerNotifier._(
-    this._intervalInfos,
-    this._iterator,
-    this._delegate,
-  ) : super(
-          TimerState._(
-            intervalInfo: _iterator.nextOrNull,
-            elapsed: Duration.zero,
-            status: TimerStatus.stopped,
-          ),
-        ) {
-    _setUp();
+  @override
+  TimerState build() {
+    ref.onDispose(() {
+      unawaited(_tearDown());
+
+      if (!_ticker.isDisposed) {
+        final wasRunning = _ticker.isRunning;
+
+        _ticker.dispose();
+
+        if (wasRunning) {
+          _delegate.onStop();
+        }
+      }
+    });
+
+    _intervalInfos = IntervalInfoIterable(ref.watch(workoutIntervalsProvider));
+    _iterator = _intervalInfos.iterator;
+
+    final keepAwake = ref.read(keepAwakeProvider);
+    final player = ref.read(playerProvider);
+
+    _delegate = _TimerDelegate(
+      onStart: keepAwake.enable,
+      onStop: keepAwake.disable,
+      onIntervalComplete: player.playIntervalCompleted,
+      onComplete: player.playWorkoutCompleted,
+    );
+
+    final intervalInfo = _iterator.nextOrNull;
+    _setUp(intervalInfo?.interval);
+
+    return TimerState._(
+      intervalInfo: intervalInfo,
+      elapsed: Duration.zero,
+      status: TimerStatus.stopped,
+    );
   }
 
   void start() {
@@ -113,32 +130,17 @@ class TimerNotifier extends StateNotifier<TimerState> {
     unawaited(_tearDown());
 
     _iterator = _intervalInfos.iterator;
+
+    final intervalInfo = _iterator.nextOrNull;
     state = TimerState._(
-      intervalInfo: _iterator.nextOrNull,
+      intervalInfo: intervalInfo,
       elapsed: Duration.zero,
       status: TimerStatus.running,
     );
 
-    _setUp();
+    _setUp(intervalInfo?.interval);
 
     start();
-  }
-
-  @override
-  void dispose() {
-    unawaited(_tearDown());
-
-    if (!_ticker.isDisposed) {
-      final wasRunning = _ticker.isRunning;
-
-      _ticker.dispose();
-
-      if (wasRunning) {
-        _delegate.onStop();
-      }
-    }
-
-    super.dispose();
   }
 
   /// Returns the current accurate elapsed time.
@@ -152,8 +154,8 @@ class TimerNotifier extends StateNotifier<TimerState> {
   /// Calling this method doesn't influence the state in any way.
   Duration get accurateElapsed => _ticker.elapsed;
 
-  void _setUp() {
-    _ticker = Ticker(limit: state.intervalInfo?.interval);
+  void _setUp(Duration? limit) {
+    _ticker = Ticker(limit: limit);
     _tickerSubscription = _ticker.stream.listen(
       _tick,
       onDone: _done,
@@ -188,13 +190,13 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
       unawaited(_tearDown());
 
+      final intervalInfo = _iterator.current;
       state = TimerState._(
-        intervalInfo: _iterator.current,
+        intervalInfo: intervalInfo,
         elapsed: Duration.zero,
         status: TimerStatus.running,
       );
-
-      _setUp();
+      _setUp(intervalInfo.interval);
 
       _start();
     } else {
@@ -239,22 +241,8 @@ class TimerNotifier extends StateNotifier<TimerState> {
 }
 
 final timerNotifierProvider =
-    StateNotifierProvider.autoDispose<TimerNotifier, TimerState>(
-  (ref) {
-    final intervalGroups = ref.watch(workoutIntervalsProvider);
-    final keepAwake = ref.watch(keepAwakeProvider);
-    final player = ref.watch(playerProvider);
-
-    return TimerNotifier._create(
-      IntervalInfoIterable(intervalGroups),
-      _TimerDelegate(
-        onStart: keepAwake.enable,
-        onStop: keepAwake.disable,
-        onIntervalComplete: player.playIntervalCompleted,
-        onComplete: player.playWorkoutCompleted,
-      ),
-    )..start();
-  },
+    NotifierProvider.autoDispose<TimerNotifier, TimerState>(
+  TimerNotifier._,
 );
 
 class _TimerDelegate {

@@ -150,11 +150,14 @@ class IntervalsSetup with EquatableMixin {
 // Modification operations work with [Iterable]s for performance - this way
 // creating a new state and collecting all the necessary information along the
 // way is done using a single iteration only.
-class IntervalsSetupNotifier extends StateNotifier<IntervalsSetup> {
-  IntervalsSetupNotifier() : this.seeded(IntervalsSetup.initial());
+class IntervalsSetupNotifier extends AutoDisposeNotifier<IntervalsSetup> {
+  final IntervalsSetup? _testSeed;
 
   @visibleForTesting
-  IntervalsSetupNotifier.seeded(super._state);
+  IntervalsSetupNotifier([this._testSeed]);
+
+  @override
+  IntervalsSetup build() => _testSeed ?? IntervalsSetup.initial();
 
   void add(IntervalsSetupItem item) {
     _recalculateState(
@@ -262,8 +265,8 @@ class IntervalsSetupNotifier extends StateNotifier<IntervalsSetup> {
 }
 
 final intervalsSetupNotifierProvider =
-    StateNotifierProvider.autoDispose<IntervalsSetupNotifier, IntervalsSetup>(
-  (ref) => IntervalsSetupNotifier(),
+    NotifierProvider.autoDispose<IntervalsSetupNotifier, IntervalsSetup>(
+  IntervalsSetupNotifier.new,
 );
 
 extension _IterableOfGroupedItemX on Iterable<GroupedIntervalsSetupItem> {

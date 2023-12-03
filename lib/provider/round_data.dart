@@ -35,20 +35,30 @@ class RoundData {
   bool get areAllRoundDurationsEqual => slowestRoundIndex == fastestRoundIndex;
 }
 
-class RoundDataNotifier extends StateNotifier<RoundData?> {
-  final Duration Function() _elapsed;
-
-  final List<Duration> _roundDurations;
-
-  Duration _previousElapsed;
+class RoundDataNotifier extends AutoDisposeNotifier<RoundData?> {
+  final List<Duration> _roundDurations = [];
 
   int? _slowestRoundIndex;
   int? _fastestRoundIndex;
 
-  RoundDataNotifier(this._elapsed)
-      : _roundDurations = [],
-        _previousElapsed = Duration.zero,
-        super(null);
+  late Duration _previousElapsed;
+  late Duration Function() _elapsed;
+
+  RoundDataNotifier._();
+
+  @override
+  RoundData? build() {
+    _roundDurations.clear();
+
+    _slowestRoundIndex = null;
+    _fastestRoundIndex = null;
+
+    _previousElapsed = Duration.zero;
+    final timerNotifier = ref.watch(timerNotifierProvider.notifier);
+    _elapsed = () => timerNotifier.accurateElapsed;
+
+    return null;
+  }
 
   void registerRound() {
     final elapsed = _elapsed();
@@ -104,10 +114,6 @@ class RoundDataNotifier extends StateNotifier<RoundData?> {
 }
 
 final roundDataNotifierProvider =
-    StateNotifierProvider.autoDispose<RoundDataNotifier, RoundData?>(
-  (ref) {
-    final timerNotifier = ref.watch(timerNotifierProvider.notifier);
-
-    return RoundDataNotifier(() => timerNotifier.accurateElapsed);
-  },
+    NotifierProvider.autoDispose<RoundDataNotifier, RoundData?>(
+  RoundDataNotifier._,
 );

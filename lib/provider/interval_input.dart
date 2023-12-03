@@ -4,29 +4,28 @@ import 'interval_definition.dart';
 
 export 'interval_definition.dart';
 
-class IntervalInputNotifier extends StateNotifier<IntervalDefinition> {
-  final List<int> _input;
-  int _digitCount;
+class IntervalInputNotifier
+    extends AutoDisposeFamilyNotifier<IntervalDefinition, IntervalDefinition?> {
+  late List<int> _input;
+  late int _digitCount;
 
-  factory IntervalInputNotifier(IntervalDefinition? prototype) {
-    if (prototype == null) {
-      return IntervalInputNotifier._(
-        List.filled(6, 0),
-        0,
-        const IntervalDefinition(),
-      );
+  IntervalInputNotifier._();
+
+  @override
+  IntervalDefinition build(IntervalDefinition? arg) {
+    if (arg == null) {
+      _input = List.filled(6, 0);
+      _digitCount = 0;
+
+      return const IntervalDefinition();
     }
 
-    final (input, digitCount) = _decompose(prototype);
+    final decomposed = _decompose(arg);
+    _input = decomposed.$1;
+    _digitCount = decomposed.$2;
 
-    return IntervalInputNotifier._(input, digitCount, prototype);
+    return arg;
   }
-
-  IntervalInputNotifier._(
-    this._input,
-    this._digitCount,
-    IntervalDefinition prototype,
-  ) : super(prototype);
 
   void addDigit(int digit) {
     if (_digitCount == 0 && digit == 0) {
@@ -113,7 +112,7 @@ class IntervalInputNotifier extends StateNotifier<IntervalDefinition> {
   return (input, digitCount);
 }
 
-final intervalInputNotifierProvider = StateNotifierProvider.autoDispose
+final intervalInputNotifierProvider = NotifierProvider.autoDispose
     .family<IntervalInputNotifier, IntervalDefinition, IntervalDefinition?>(
-  (ref, prototype) => IntervalInputNotifier(prototype),
+  IntervalInputNotifier._,
 );

@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:test/test.dart';
 import 'package:time_it/provider/interval_group.dart';
 import 'package:time_it/provider/intervals_setup.dart';
@@ -367,24 +368,19 @@ void main() {
         'after': 1,
       }.forEach((where, newIndex) {
         test('right $where itself is a no-op', () {
-          final notifier = IntervalsSetupNotifier.seeded(
-            IntervalsSetup(
-              [
+          _itemsModificationTest(
+            _NotifierTestConfig(
+              seed: [
                 _groupedGroupItem(group: 0, isFirst: true, isLast: true),
                 _groupedGroupItem(group: 1, isFirst: true, isLast: true),
               ],
-              hasIntervals: false,
+              operations: (notifier) => notifier.move(
+                oldIndex: 0,
+                newIndex: newIndex,
+              ),
+              expected: const [],
             ),
           );
-
-          expect(
-            notifier.stream,
-            emitsDone,
-          );
-
-          notifier
-            ..move(oldIndex: 0, newIndex: newIndex)
-            ..dispose();
         });
       });
 
@@ -732,12 +728,9 @@ class _NotifierTestConfig {
   });
 }
 
-// Tests 'groupedItems' only, doesn't consider the whole state, there are other
-// tests for that. 'hasIntervals' is asserted in the constructor so its validity
-// is tested implicitly - if it's wrong, tests will fail.
 void Function() _itemsModificationTest(_NotifierTestConfig config) {
   return () {
-    final notifier = IntervalsSetupNotifier.seeded(
+    final notifier = IntervalsSetupNotifier(
       IntervalsSetup(
         config.seed,
         hasIntervals: config.seed.any(
@@ -745,16 +738,29 @@ void Function() _itemsModificationTest(_NotifierTestConfig config) {
         ),
       ),
     );
-    addTearDown(notifier.dispose);
 
-    expect(
-      notifier.stream.map((event) => event.groupedItems),
-      emitsInOrder(<Matcher>[
-        equals(config.expected),
-      ]),
+    final container = ProviderContainer(
+      overrides: [
+        intervalsSetupNotifierProvider.overrideWith(() => notifier),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final states = <IntervalsSetup>[];
+    container.listen(
+      intervalsSetupNotifierProvider,
+      (previous, next) => states.add(next),
     );
 
     config.operations(notifier);
+
+    // 'hasIntervals' is asserted in the constructor so its validity is tested
+    // implicitly - if it's wrong, creation will fail, and so will the test.
+    expect(
+      states.map((state) => state.groupedItems),
+      // The tests currently always result in 1 state, fail if there are more.
+      [config.expected],
+    );
   };
 }
 
