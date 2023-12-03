@@ -14,9 +14,8 @@ Future<void> launchIntervalInput(
 ) {
   return Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (context) => const IntervalInputPage(),
-      settings: RouteSettings(
-        arguments: delegate,
+      builder: (context) => IntervalInputPage(
+        delegate: delegate,
       ),
     ),
   );
@@ -35,26 +34,12 @@ class IntervalInputDelegate {
 }
 
 // Design and behavior influenced by the standard Android Clock app.
-class IntervalInputPage extends ConsumerStatefulWidget {
-  const IntervalInputPage();
+class IntervalInputPage extends StatelessWidget {
+  final IntervalInputDelegate delegate;
 
-  @override
-  ConsumerState<IntervalInputPage> createState() => _IntervalInputPageState();
-}
-
-class _IntervalInputPageState extends ConsumerState<IntervalInputPage> {
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    final delegate =
-        ModalRoute.of(context)!.settings.arguments! as IntervalInputDelegate;
-    if (delegate.prototype != null) {
-      ref
-          .read(intervalInputNotifierProvider.notifier)
-          .override(delegate.prototype!);
-    }
-  }
+  const IntervalInputPage({
+    required this.delegate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -67,18 +52,22 @@ class _IntervalInputPageState extends ConsumerState<IntervalInputPage> {
             child: Container(
               alignment: Alignment.bottomCenter,
               padding: const EdgeInsets.only(bottom: 24),
-              child: const _IntervalTextWidget(),
+              child: _IntervalTextWidget(
+                prototype: delegate.prototype,
+              ),
             ),
           ),
           Divider(
             thickness: 2,
             color: textStyle(context).color,
           ),
-          const Expanded(
+          Expanded(
             flex: 4,
             child: Padding(
-              padding: EdgeInsets.only(top: 24),
-              child: _DialWidget(),
+              padding: const EdgeInsets.only(top: 24),
+              child: _DialWidget(
+                delegate: delegate,
+              ),
             ),
           ),
         ],
@@ -88,11 +77,15 @@ class _IntervalInputPageState extends ConsumerState<IntervalInputPage> {
 }
 
 class _IntervalTextWidget extends ConsumerWidget {
-  const _IntervalTextWidget();
+  final IntervalDefinition? prototype;
+
+  const _IntervalTextWidget({
+    required this.prototype,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalInput = ref.watch(intervalInputNotifierProvider);
+    final intervalInput = ref.watch(intervalInputNotifierProvider(prototype));
 
     final textColor =
         intervalInput.isNotEmpty ? Theme.of(context).colorScheme.primary : null;
@@ -116,12 +109,14 @@ class _IntervalTextWidget extends ConsumerWidget {
         ),
         GestureDetector(
           onLongPress: intervalInput.isNotEmpty
-              ? () => ref.read(intervalInputNotifierProvider.notifier).reset()
+              ? () => ref
+                  .read(intervalInputNotifierProvider(prototype).notifier)
+                  .reset()
               : null,
           child: IconButton(
             onPressed: intervalInput.isNotEmpty
                 ? () => ref
-                    .read(intervalInputNotifierProvider.notifier)
+                    .read(intervalInputNotifierProvider(prototype).notifier)
                     .deleteLastDigit()
                 : null,
             icon: const Icon(
@@ -169,7 +164,11 @@ class _DotsTile extends StatelessWidget {
 }
 
 class _DialWidget extends ConsumerWidget {
-  const _DialWidget();
+  final IntervalInputDelegate delegate;
+
+  const _DialWidget({
+    required this.delegate,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -178,18 +177,21 @@ class _DialWidget extends ConsumerWidget {
       if (digit == _double0ButtonMarker) {
         body = CommonButton(
           onTap: () {
-            ref.read(intervalInputNotifierProvider.notifier)
+            ref.read(intervalInputNotifierProvider(delegate.prototype).notifier)
               ..addDigit(0)
               ..addDigit(0);
           },
           child: const FittedText('00'),
         );
       } else if (digit == _submitButtonMarker) {
-        body = const _SubmitButton();
+        body = _SubmitButton(
+          delegate: delegate,
+        );
       } else {
         body = CommonButton(
-          onTap: () =>
-              ref.read(intervalInputNotifierProvider.notifier).addDigit(digit),
+          onTap: () => ref
+              .read(intervalInputNotifierProvider(delegate.prototype).notifier)
+              .addDigit(digit),
           child: FittedText('$digit'),
         );
       }
@@ -223,25 +225,30 @@ class _DialWidget extends ConsumerWidget {
 }
 
 class _SubmitButton extends ConsumerWidget {
-  const _SubmitButton();
+  final IntervalInputDelegate delegate;
+
+  const _SubmitButton({
+    required this.delegate,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final intervalInput = ref.watch(intervalInputNotifierProvider);
-
-    final delegate =
-        ModalRoute.of(context)!.settings.arguments! as IntervalInputDelegate;
+    final intervalDefinition = ref.watch(
+      intervalInputNotifierProvider(delegate.prototype),
+    );
 
     return Activation(
-      isActive: intervalInput.isNotEmpty,
+      isActive: intervalDefinition.isNotEmpty,
       child: CommonButton.primary(
-        onTap: () => delegate.onSubmit(
-          ref.watch(intervalInputNotifierProvider.notifier).intervalDefinition,
-        ),
+        onTap: () => delegate.onSubmit(intervalDefinition),
         child: Icon(delegate.submitIcon),
       ),
     );
   }
+}
+
+extension _IsEmptyIntervalDefinitionX on IntervalDefinition {
+  bool get isNotEmpty => seconds > 0 || minutes > 0 || hours > 0;
 }
 
 const _double0ButtonMarker = -1;

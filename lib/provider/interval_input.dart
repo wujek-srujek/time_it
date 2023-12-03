@@ -1,30 +1,32 @@
-import 'package:meta/meta.dart';
 import 'package:riverpod/riverpod.dart';
 
 import 'interval_definition.dart';
 
 export 'interval_definition.dart';
 
-@immutable
-class IntervalInput {
-  final int hours;
-  final int minutes;
-  final int seconds;
-
-  const IntervalInput._(this.hours, this.minutes, this.seconds);
-
-  bool get isNotEmpty => seconds > 0 || minutes > 0 || hours > 0;
-}
-
-class IntervalInputNotifier extends StateNotifier<IntervalInput> {
+class IntervalInputNotifier extends StateNotifier<IntervalDefinition> {
   final List<int> _input;
   int _digitCount;
-  IntervalDefinition? _prototype;
 
-  IntervalInputNotifier()
-      : _digitCount = 0,
-        _input = List.filled(6, 0),
-        super(const IntervalInput._(0, 0, 0));
+  factory IntervalInputNotifier(IntervalDefinition? prototype) {
+    if (prototype == null) {
+      return IntervalInputNotifier._(
+        List.filled(6, 0),
+        0,
+        const IntervalDefinition(),
+      );
+    }
+
+    final (input, digitCount) = _decompose(prototype);
+
+    return IntervalInputNotifier._(input, digitCount, prototype);
+  }
+
+  IntervalInputNotifier._(
+    this._input,
+    this._digitCount,
+    IntervalDefinition prototype,
+  ) : super(prototype);
 
   void addDigit(int digit) {
     if (_digitCount == 0 && digit == 0) {
@@ -77,53 +79,41 @@ class IntervalInputNotifier extends StateNotifier<IntervalInput> {
     }
   }
 
-  void override(IntervalDefinition prototype) {
-    _update(() {
-      void decompose(int unit, int firstIndex) {
-        if (unit > 0) {
-          _input[firstIndex] = unit ~/ 10;
-          _input[firstIndex + 1] = unit.remainder(10);
-        }
-      }
-
-      decompose(prototype.hours, 0);
-      decompose(prototype.minutes, 2);
-      decompose(prototype.seconds, 4);
-
-      var i = 0;
-      while (i < _input.length && _input[i] == 0) {
-        ++i;
-      }
-      _digitCount = _input.length - i;
-
-      _prototype = prototype;
-    });
-  }
-
-  IntervalDefinition get intervalDefinition => _prototype != null
-      ? _prototype!.copyWith(
-          newHours: state.hours,
-          newMinutes: state.minutes,
-          newSeconds: state.seconds,
-        )
-      : IntervalDefinition(
-          hours: state.hours,
-          minutes: state.minutes,
-          seconds: state.seconds,
-        );
-
   void _update(void Function() operations) {
     operations();
 
-    state = IntervalInput._(
-      _input[0] * 10 + _input[1],
-      _input[2] * 10 + _input[3],
-      _input[4] * 10 + _input[5],
+    state = state.copyWith(
+      newHours: _input[0] * 10 + _input[1],
+      newMinutes: _input[2] * 10 + _input[3],
+      newSeconds: _input[4] * 10 + _input[5],
     );
   }
 }
 
-final intervalInputNotifierProvider =
-    StateNotifierProvider.autoDispose<IntervalInputNotifier, IntervalInput>(
-  (ref) => IntervalInputNotifier(),
+(List<int>, int) _decompose(IntervalDefinition prototype) {
+  final input = List.filled(6, 0);
+
+  void decomposeUnit(int unit, int firstIndex) {
+    if (unit > 0) {
+      input[firstIndex] = unit ~/ 10;
+      input[firstIndex + 1] = unit.remainder(10);
+    }
+  }
+
+  decomposeUnit(prototype.hours, 0);
+  decomposeUnit(prototype.minutes, 2);
+  decomposeUnit(prototype.seconds, 4);
+
+  var i = 0;
+  while (i < input.length && input[i] == 0) {
+    ++i;
+  }
+  final digitCount = input.length - i;
+
+  return (input, digitCount);
+}
+
+final intervalInputNotifierProvider = StateNotifierProvider.autoDispose
+    .family<IntervalInputNotifier, IntervalDefinition, IntervalDefinition?>(
+  (ref, prototype) => IntervalInputNotifier(prototype),
 );
