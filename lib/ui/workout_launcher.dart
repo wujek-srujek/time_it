@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../provider/interval_group.dart';
+import '../provider/workout_intervals.dart';
 import 'page/workout_page.dart';
 import 'widget/mode/countdown_timer_widget.dart';
 import 'widget/mode/intervals_widget.dart';
@@ -7,9 +10,13 @@ import 'widget/mode/menu_items.dart';
 import 'widget/mode/rounds_widget.dart';
 import 'widget/mode/stopwatch_widget.dart';
 
-Future<void> launchAmrap(BuildContext context) {
+Future<void> launchAmrap(
+  WidgetRef ref,
+  IntervalDefinition intervalDefinition,
+) {
   return _launchWorkout(
-    context,
+    ref,
+    [IntervalGroup.single(intervalDefinition)],
     const WorkoutPage(
       topWidget: RoundsWidget(),
       bottomWidget: CountdownTimerWidget(),
@@ -21,9 +28,10 @@ Future<void> launchAmrap(BuildContext context) {
   );
 }
 
-Future<void> launchStopwatch(BuildContext context) {
+Future<void> launchStopwatch(WidgetRef ref) {
   return _launchWorkout(
-    context,
+    ref,
+    [],
     const WorkoutPage(
       topWidget: RoundsWidget(),
       bottomWidget: StopwatchWidget(),
@@ -35,9 +43,13 @@ Future<void> launchStopwatch(BuildContext context) {
   );
 }
 
-Future<void> launchIntervals(BuildContext context) {
+Future<void> launchIntervals(
+  WidgetRef ref,
+  List<IntervalGroup> intervalGroups,
+) {
   return _launchWorkout(
-    context,
+    ref,
+    intervalGroups,
     const WorkoutPage(
       topWidget: IntervalsWidget(),
       bottomWidget: CountdownTimerWidget(),
@@ -49,10 +61,13 @@ Future<void> launchIntervals(BuildContext context) {
 }
 
 Future<void> _launchWorkout(
-  BuildContext context,
+  WidgetRef ref,
+  List<IntervalGroup> intervalGroups,
   WorkoutPage workoutPage,
 ) {
-  return Navigator.of(context).push(
+  ref.read(workoutIntervalsProvider.notifier).state = intervalGroups;
+
+  return Navigator.of(ref.context).push(
     MaterialPageRoute<void>(
       builder: (context) => workoutPage,
     ),

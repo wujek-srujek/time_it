@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../provider/interval_group.dart';
-import '../../provider/workout_intervals.dart';
 import '../widget/common/common_button.dart';
 import '../widget/common/fitted_text.dart';
 import '../widget/common/page_scaffold.dart';
@@ -83,11 +81,7 @@ class _AmrapModeButton extends ConsumerWidget {
         IntervalInputDelegate(
           submitIcon: Icons.play_arrow_rounded,
           onSubmit: (intervalDefinition) async {
-            ref.read(workoutIntervalsProvider.notifier).state = [
-              IntervalGroup.single(intervalDefinition),
-            ];
-
-            return launchAmrap(context);
+            return launchAmrap(ref, intervalDefinition);
           },
         ),
       ),
@@ -97,14 +91,14 @@ class _AmrapModeButton extends ConsumerWidget {
 
 // In this mode, there is no interval defined, the timer counts upwards and the
 // workout can only be finished by the user.
-class _StopwatchModeButton extends StatelessWidget {
+class _StopwatchModeButton extends ConsumerWidget {
   const _StopwatchModeButton();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return _ModeButton(
       modeName: 'Stopwatch',
-      onTap: () async => launchStopwatch(context),
+      onTap: () async => launchStopwatch(ref),
     );
   }
 }
