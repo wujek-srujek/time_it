@@ -76,16 +76,10 @@ class SizeDependentPadding extends StatelessWidget {
   }
 
   double _pickBase(Size size, CalculationBase calculationBase) {
-    final double baseSide;
-    switch (calculationBase) {
-      case CalculationBase.width:
-        baseSide = size.width;
-      case CalculationBase.height:
-        baseSide = size.height;
-      case CalculationBase.smallerSide:
-        baseSide = min(size.width, size.height);
-    }
-
-    return baseSide;
+    return switch (calculationBase) {
+      CalculationBase.width => size.width,
+      CalculationBase.height => size.height,
+      CalculationBase.smallerSide => min(size.width, size.height),
+    };
   }
 }

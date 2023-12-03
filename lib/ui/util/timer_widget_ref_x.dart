@@ -12,10 +12,6 @@ import '../../provider/timer.dart';
 /// While it is possible to use [timerNotifierProvider] together with
 /// [ProviderBase.select], requesting `status` only happens to be used pretty
 /// often so it is implemented here to avoid duplication.
-///
-/// **Note**: this extension is pretty much a workaround for
-/// https://github.com/rrousselGit/river_pod/issues/648 and should be replaced
-/// with a standard and recommended solution once fixed.
 extension TimerWidgetRefX on WidgetRef {
   TimerStatus watchTimerStatus() {
     return watch(_timerStatusSelector);

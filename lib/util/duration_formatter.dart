@@ -4,30 +4,24 @@ import '../util/duration_x.dart';
 
 const maxDecimalPlaces = 3;
 
-// Be careful changing order as it is relevant (see `_ComponentX.includes`).
+// Be careful changing order as it is relevant (see `includes`).
 enum TimeComponent {
   hour,
   minute,
   second,
-  none,
-}
+  none;
 
-extension _TimeComponentX on TimeComponent {
   bool includes(TimeComponent other) => index <= other.index;
 }
 
 extension _UnpackedDurationX on UnpackedDuration {
   bool includes(TimeComponent component) {
-    switch (component) {
-      case TimeComponent.hour:
-        return hours > 0;
-      case TimeComponent.minute:
-        return hours > 0 || minutes > 0;
-      case TimeComponent.second:
-        return hours > 0 || minutes > 0 || seconds > 0;
-      case TimeComponent.none:
-        throw Exception('this makes no sense');
-    }
+    return switch (component) {
+      TimeComponent.hour => hours > 0,
+      TimeComponent.minute => hours > 0 || minutes > 0,
+      TimeComponent.second => hours > 0 || minutes > 0 || seconds > 0,
+      TimeComponent.none => true,
+    };
   }
 }
 
@@ -48,7 +42,7 @@ extension _UnpackedDurationX on UnpackedDuration {
 /// which pads single digits with leading '0'. Similarly to [forceComponent],
 /// this changes the way the forced component is printed, as well as all
 /// components 'below'. For example, the duration '1 hour 1 min 1 sec' and
-/// [forceComponentPadding] of [TimeComponent.hour]  is printed as '01:01:01'.
+/// [forceComponentPadding] of [TimeComponent.hour] is printed as '01:01:01'.
 ///
 /// [forceComponent] and [forceComponentPadding] are independent, which makes it
 /// possible to achieve various printing effects. For example, for the default

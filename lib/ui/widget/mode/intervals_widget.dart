@@ -56,10 +56,6 @@ class IntervalsWidget extends ConsumerWidget {
   }
 }
 
-/// **Note**: this extension is pretty much a workaround for
-/// https://github.com/rrousselGit/river_pod/issues/648 and should be replaced
-/// with a standard and recommended solution once fixed.
-
 extension _IntervalInfoWidgetRefX on WidgetRef {
   IntervalInfo watchIntervalInfo() {
     // `IntervalsWidget` is only used in 'intervals' mode, which must have at

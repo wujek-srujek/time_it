@@ -165,44 +165,37 @@ class _IntervalsItemWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final item = this.item;
+    return switch (item) {
+      IntervalGroupItem _ => Container(),
+      final IntervalDefinitionItem item => InkWell(
+          borderRadius: allCircularBorderRadius,
+          onTap: () async {
+            return launchIntervalInput(
+              context,
+              IntervalInputDelegate(
+                submitIcon: Icons.refresh_rounded,
+                onSubmit: (intervalDefinition) {
+                  ref.read(intervalsSetupNotifierProvider.notifier).update(
+                        index: index,
+                        item: IntervalDefinitionItem(intervalDefinition),
+                      );
 
-    if (item is IntervalGroupItem) {
-      return Container();
-    } else if (item is IntervalDefinitionItem) {
-      return InkWell(
-        borderRadius: allCircularBorderRadius,
-        onTap: () async {
-          return launchIntervalInput(
-            context,
-            IntervalInputDelegate(
-              submitIcon: Icons.refresh_rounded,
-              onSubmit: (intervalDefinition) {
-                ref.read(intervalsSetupNotifierProvider.notifier).update(
-                      index: index,
-                      item: IntervalDefinitionItem(intervalDefinition),
-                    );
-
-                Navigator.of(context).pop();
-              },
-              prototype: item.intervalDefinition,
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: FittedText(
-            _formatInterval(
-              item.intervalDefinition.toDuration(),
+                  Navigator.of(context).pop();
+                },
+                prototype: item.intervalDefinition,
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: FittedText(
+              _formatInterval(
+                item.intervalDefinition.toDuration(),
+              ),
             ),
           ),
         ),
-      );
-    }
-
-    assert(false, 'unknown item type');
-
-    return Container();
+    };
   }
 }
 

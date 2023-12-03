@@ -14,7 +14,7 @@ enum CommonButtonVariant {
   /// be at most one such botton per page.
   ///
   /// The 'primary' variant uses `ColorScheme.secondary` (I know, confusing) as
-  /// this is what FABs use, and this button is king of a replacement for them.
+  /// this is what FABs use, and this button is kind of a replacement for them.
   primary,
 
   /// A standard button which supports tapping, long pressing and uses
@@ -105,16 +105,13 @@ class CommonButton extends StatelessWidget {
   }
 
   Color _resolveColor(ColorScheme colorScheme) {
-    switch (variant) {
-      case CommonButtonVariant.destructive:
-        return colorScheme.error;
+    return switch (variant) {
+      CommonButtonVariant.destructive => colorScheme.error,
       // The following two are a bit confusing, see [CommonButtonVariant] docs
       // for an explanation.
-      case CommonButtonVariant.primary:
-        return colorScheme.secondary;
-      case CommonButtonVariant.standard:
-        return colorScheme.primary;
-    }
+      CommonButtonVariant.primary => colorScheme.secondary,
+      CommonButtonVariant.standard => colorScheme.primary,
+    };
   }
 }
 

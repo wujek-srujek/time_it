@@ -8,7 +8,7 @@ import 'interval_group.dart';
 export 'interval_definition.dart';
 
 @immutable
-abstract class IntervalsSetupItem with EquatableMixin {
+sealed class IntervalsSetupItem with EquatableMixin {
   int get repetitions;
 
   const IntervalsSetupItem();
@@ -16,7 +16,7 @@ abstract class IntervalsSetupItem with EquatableMixin {
   IntervalsSetupItem withRepetitions(int repetitions);
 }
 
-class IntervalGroupItem extends IntervalsSetupItem {
+final class IntervalGroupItem extends IntervalsSetupItem {
   @override
   final int repetitions;
 
@@ -32,7 +32,7 @@ class IntervalGroupItem extends IntervalsSetupItem {
   List<Object?> get props => [repetitions];
 }
 
-class IntervalDefinitionItem extends IntervalsSetupItem {
+final class IntervalDefinitionItem extends IntervalsSetupItem {
   final IntervalDefinition intervalDefinition;
 
   const IntervalDefinitionItem(this.intervalDefinition);
@@ -131,18 +131,16 @@ class IntervalsSetup with EquatableMixin {
     for (final groupedItem in groupedItems) {
       final item = groupedItem.item;
 
-      if (item is IntervalGroupItem) {
-        terminateIntervalGroup();
-
-        currentGroupItem = item;
-      } else if (item is IntervalDefinitionItem) {
-        groupedIntervalDefinitions.add(item.intervalDefinition);
-      } else {
-        assert(false, 'unknown item type $item');
+      switch (item) {
+        case IntervalGroupItem _:
+          terminateIntervalGroup();
+          currentGroupItem = item;
+        case IntervalDefinitionItem _:
+          groupedIntervalDefinitions.add(item.intervalDefinition);
       }
     }
 
-    // The last group doesn't have a group to follow so we terminate it here.
+    // Terminate the last group.
     terminateIntervalGroup();
 
     return intervalGroups;
@@ -232,12 +230,7 @@ class IntervalsSetupNotifier extends StateNotifier<IntervalsSetup> {
     var hasIntervals = false;
     if (items.isNotEmpty) {
       var group = -1;
-      for (final enumeration in items.withNext().enumerate()) {
-        final index = enumeration.first;
-        final itemWithNext = enumeration.second;
-        final item = itemWithNext.first;
-        final nextItem = itemWithNext.second;
-
+      for (final (index, (item, nextItem)) in items.withNext().indexed) {
         // If not a group at items[0] a 'virtual' first group is implied. This
         // makes the UI less cluttered for simplest use cases.
         final isFirst = item is IntervalGroupItem || index == 0;

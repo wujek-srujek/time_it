@@ -21,15 +21,11 @@ class TimerWidget extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final Color durationColor;
-    switch (timerStatus) {
-      case TimerStatus.running:
-        durationColor = colorScheme.primary;
-      case TimerStatus.stopped:
-        durationColor = colorScheme.error;
-      case TimerStatus.completed:
-        durationColor = colorScheme.secondary;
-    }
+    final durationColor = switch (timerStatus) {
+      TimerStatus.running => colorScheme.primary,
+      TimerStatus.stopped => colorScheme.error,
+      TimerStatus.completed => colorScheme.secondary,
+    };
 
     return ModeWidget(
       onTap: timerStatus != TimerStatus.completed

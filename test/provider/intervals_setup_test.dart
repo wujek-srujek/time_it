@@ -5,7 +5,7 @@ import 'package:time_it/provider/intervals_setup.dart';
 
 void main() {
   group('IntervalsSetup', () {
-    for (final stateCreator in [
+    for (final (index, stateCreator) in [
       () => IntervalsSetup(
             const [],
             hasIntervals: true,
@@ -48,8 +48,8 @@ void main() {
             ],
             hasIntervals: false,
           ),
-    ]) {
-      test("creation fails for inconsistent 'hasIntervals'", () {
+    ].indexed) {
+      test("$index. creation fails for inconsistent 'hasIntervals'", () {
         expect(
           stateCreator,
           throwsA(isA<AssertionError>()),
@@ -57,7 +57,7 @@ void main() {
       });
     }
 
-    for (final config in [
+    for (final (index, config) in [
       _SetupTestConfig(
         input: [
           _groupedIntervalItem(1, group: 0, isFirst: true, isLast: true),
@@ -133,8 +133,8 @@ void main() {
           ),
         ],
       ),
-    ]) {
-      test('extracting interval groups works', () {
+    ].indexed) {
+      test('$index. extracting interval groups works', () {
         expect(
           IntervalsSetup(
             config.input,
