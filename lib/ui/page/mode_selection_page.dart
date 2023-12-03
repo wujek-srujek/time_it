@@ -20,16 +20,18 @@ class ModeSelectionPage extends StatelessWidget {
       title: 'Choose mode',
       child: Stack(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _AmrapModeButton(),
-              _StopwatchModeButton(),
-              _IntervalsModeButton(),
-              Expanded(
-                child: SizedBox.shrink(),
-              ),
-            ],
+          Padding(
+            padding: EdgeInsets.only(bottom: 48),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(flex: 7, child: _AmrapModeButton()),
+                Spacer(),
+                Expanded(flex: 7, child: _StopwatchModeButton()),
+                Spacer(),
+                Expanded(flex: 7, child: _IntervalsModeButton()),
+              ],
+            ),
           ),
           Positioned(
             bottom: 0,
@@ -52,13 +54,11 @@ class _ModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        child: CommonButton(
-          onTap: onTap,
-          child: FittedText(modeName),
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      child: CommonButton(
+        onTap: onTap,
+        child: FittedText(modeName),
       ),
     );
   }
