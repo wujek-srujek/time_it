@@ -65,10 +65,7 @@ class _ModeButton extends StatelessWidget {
 }
 
 // In this mode, a single interval is defined and the workout is finished when
-// it completes. `intervalsSetupNotifierProvider` (used internally by
-// `timerNotifierProvider` to get the intervals) is short-lived and created when
-// the sole interval is added in `IntervalInputPage`, right before the workout
-// page is pushed (see the callback below), and disposed when coming back.
+// it completes.
 class _AmrapModeButton extends ConsumerWidget {
   const _AmrapModeButton();
 
