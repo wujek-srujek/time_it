@@ -17,11 +17,7 @@ class RoundsWidget extends ConsumerWidget {
 
     return ModeWidget(
       onTap: timerStatus != TimerStatus.completed
-          ? () => ref
-              .read(
-                roundDataNotifierProvider.notifier,
-              )
-              .registerRound()
+          ? () => ref.read(roundDataNotifierProvider.notifier).registerRound()
           : null,
       child: Consumer(
         builder: (context, ref, child) {

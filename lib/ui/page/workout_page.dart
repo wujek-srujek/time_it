@@ -81,13 +81,13 @@ class _WorkoutPageState extends State<WorkoutPage>
                 ],
               ),
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _WorkoutMenu(
-                  menuItems: widget.menuItems,
-                ),
-              ],
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _WorkoutMenu(
+                menuItems: widget.menuItems,
+              ),
             ),
           ],
         ),

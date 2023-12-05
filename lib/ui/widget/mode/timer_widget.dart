@@ -18,15 +18,6 @@ class TimerWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timerStatus = ref.watchTimerStatus();
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final durationColor = switch (timerStatus) {
-      TimerStatus.running => colorScheme.primary,
-      TimerStatus.stopped => colorScheme.error,
-      TimerStatus.completed => colorScheme.secondary,
-    };
-
     return ModeWidget(
       onTap: timerStatus != TimerStatus.completed
           ? () {
@@ -40,8 +31,17 @@ class TimerWidget extends ConsumerWidget {
             }
           : null,
       child: Consumer(
-        builder: (context, watch, child) {
+        builder: (context, ref, child) {
           final timerState = ref.watch(timerNotifierProvider);
+
+          final theme = Theme.of(context);
+          final colorScheme = theme.colorScheme;
+
+          final durationColor = switch (timerStatus) {
+            TimerStatus.running => colorScheme.primary,
+            TimerStatus.stopped => colorScheme.error,
+            TimerStatus.completed => colorScheme.secondary,
+          };
 
           return TweenAnimationBuilder<Color?>(
             tween: ColorTween(end: durationColor),

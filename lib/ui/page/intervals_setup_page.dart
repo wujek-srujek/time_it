@@ -166,7 +166,7 @@ class _IntervalsItemWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return switch (item) {
-      IntervalGroupItem _ => Container(),
+      IntervalGroupItem _ => const SizedBox.shrink(),
       final IntervalDefinitionItem item => InkWell(
           borderRadius: allCircularBorderRadius,
           onTap: () async {
