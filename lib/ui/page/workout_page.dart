@@ -8,7 +8,7 @@ import '../widget/common/common_button.dart';
 import '../widget/common/common_features.dart';
 import '../widget/common/page_scaffold.dart';
 
-class WorkoutPage extends StatefulWidget {
+class WorkoutPage extends ConsumerStatefulWidget {
   final Widget topWidget;
   final Widget bottomWidget;
   final List<Widget> menuItems;
@@ -20,12 +20,13 @@ class WorkoutPage extends StatefulWidget {
   });
 
   @override
-  State<WorkoutPage> createState() => _WorkoutPageState();
+  ConsumerState<WorkoutPage> createState() => _WorkoutPageState();
 }
 
-class _WorkoutPageState extends State<WorkoutPage>
+class _WorkoutPageState extends ConsumerState<WorkoutPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController;
+  bool _wasAutoStarted = false;
 
   @override
   void initState() {
@@ -36,6 +37,21 @@ class _WorkoutPageState extends State<WorkoutPage>
       value: 1,
       duration: animationDuration,
       vsync: this,
+    );
+
+    // TimerNotifier.start changes the state to 'running' and this is not
+    // allowed in 'initState' by Riverpod. We want the timer to start
+    // automatically and the usual workaround is to do it with a slight delay.
+    // However, this results in the first frame being drawn for the 'stopped'
+    // timer state, and then almost immediately redrawn for 'started', causing a
+    // flicker. To work around this, before timer auto start, an empty view is
+    // drawn; when the timer is auto started, its state change causes another
+    // redraw, which this time results in the proper UI.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        _wasAutoStarted = true;
+        ref.read(timerNotifierProvider.notifier).start();
+      },
     );
   }
 
@@ -58,11 +74,13 @@ class _WorkoutPageState extends State<WorkoutPage>
             );
           });
 
-          final isCompleted = ref.watchTimerStatus() == TimerStatus.completed;
+          final timerStatus = ref.watchTimerStatus();
 
           return PopScope(
-            canPop: isCompleted,
-            child: child!,
+            canPop: timerStatus == TimerStatus.completed,
+            child: timerStatus == TimerStatus.stopped && !_wasAutoStarted
+                ? const SizedBox.shrink()
+                : child!,
           );
         },
         child: Stack(
