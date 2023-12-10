@@ -34,24 +34,44 @@ class IntervalInfo {
 
 @immutable
 class TimerState {
+  final Ticker _ticker;
   final IntervalInfo? intervalInfo;
-  final Duration elapsed;
   final TimerStatus status;
 
-  const TimerState._({
+  const TimerState._(
+    this._ticker, {
     required this.intervalInfo,
-    required this.elapsed,
     required this.status,
   });
 
-  /// Remaining time.
+  /// Current remaining time.
   ///
-  /// It is computed by subtracting [elapsed] from [IntervalInfo.interval] of
+  /// If [intervalInfo] is not specified, this will return `null`. Otherwise, it
+  /// is computed by subtracting [elapsed] from [IntervalInfo.interval] of
   /// [intervalInfo].
   ///
-  /// If [intervalInfo] is not specified, this will return `null`.
-  Duration? get remaining =>
-      intervalInfo != null ? intervalInfo!.interval - elapsed : null;
+  /// Note: it uses the live timer behind the scenes so in the case when it does
+  /// compute the value (`intervalInfo != null`), the result will most likely be
+  /// different (smaller) each time this method is called. It might be necessary
+  /// to call this method only once per frame to avoid weird behavior.
+  Duration? remaining() {
+    if (intervalInfo == null) {
+      return null;
+    }
+
+    final remaining = intervalInfo!.interval - elapsed();
+
+    // Due to how the underlying timer works, 'elapsed' can be slightly greater
+    // than 'intervalInfo.interval', so fix it here.
+    return remaining < Duration.zero ? Duration.zero : remaining;
+  }
+
+  /// Current elapsed time.
+  ///
+  /// Note: it uses the live timer behind the scenes so the result will most
+  /// likely be different (greater) each time this method is called. It might be
+  /// necessary to call this method only once per frame to avoid weird behavior.
+  Duration elapsed() => _ticker.elapsed;
 }
 
 // Wakelock integration: the OS must not lock the screen as long as there is a
@@ -111,8 +131,8 @@ class TimerNotifier extends _$TimerNotifier {
     _setUp(intervalInfo?.interval);
 
     return TimerState._(
+      _ticker,
       intervalInfo: intervalInfo,
-      elapsed: Duration.zero,
       status: TimerStatus.stopped,
     );
   }
@@ -136,8 +156,8 @@ class TimerNotifier extends _$TimerNotifier {
 
     final intervalInfo = _iterator.nextOrNull;
     state = TimerState._(
+      _ticker,
       intervalInfo: intervalInfo,
-      elapsed: Duration.zero,
       status: TimerStatus.running,
     );
 
@@ -145,17 +165,6 @@ class TimerNotifier extends _$TimerNotifier {
 
     start();
   }
-
-  /// Returns the current accurate elapsed time.
-  ///
-  /// [state] updates happen at 'ticks' at more or less fixed intervals and
-  /// can't report times in between. This is often good enough and should be
-  /// used for most cases, like UI updates with elapsed information; sometimes,
-  /// however, it is necessary to get the accurate elapsed time even between
-  /// 'ticks', which this method allows.
-  ///
-  /// Calling this method doesn't influence the state in any way.
-  Duration get accurateElapsed => _ticker.elapsed;
 
   void _setUp(Duration? limit) {
     _ticker = Ticker(limit: limit);
@@ -195,8 +204,8 @@ class TimerNotifier extends _$TimerNotifier {
 
       final intervalInfo = _iterator.current;
       state = TimerState._(
+        _ticker,
         intervalInfo: intervalInfo,
-        elapsed: Duration.zero,
         status: TimerStatus.running,
       );
       _setUp(intervalInfo.interval);
@@ -211,17 +220,9 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void _updateState(TimerStatus status) {
-    var elapsed = _ticker.elapsed;
-
-    // Due to how the underlying platform timer works, 'elapsed' can be greater
-    // than 'intervalInfo.interval' but we don't want to deal with it so fix it.
-    if (state.intervalInfo != null && elapsed > state.intervalInfo!.interval) {
-      elapsed = state.intervalInfo!.interval;
-    }
-
     state = TimerState._(
+      _ticker,
       intervalInfo: state.intervalInfo,
-      elapsed: elapsed,
       status: status,
     );
   }

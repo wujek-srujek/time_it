@@ -4,10 +4,9 @@ import '../../provider/timer.dart';
 
 /// Extensions to expose [TimerState.status] changes only.
 ///
-/// [timerNotifierProvider] provides the whole state which includes
-/// [TimerState.elapsed], meaning its updates are very frequent. Using this
-/// helper will result in fewer dependent `Provider` and `Widget` rebuilds if
-/// only [TimerState.status] is of interest.
+/// [timerNotifierProvider] updates its state very frequently, multiple times
+/// per second. Using this helper will result in fewer dependent `Provider` and
+/// `Widget` rebuilds if only [TimerState.status] is of interest.
 ///
 /// While it is possible to use [timerNotifierProvider] together with
 /// [ProviderBase.select], requesting `status` only happens to be used pretty

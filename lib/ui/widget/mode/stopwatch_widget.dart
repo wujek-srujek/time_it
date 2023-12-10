@@ -17,7 +17,7 @@ class _TimerOperations implements TimerOperations {
   const _TimerOperations();
 
   @override
-  Duration extractDuration(TimerState state) => state.elapsed;
+  Duration extractDuration(TimerState state) => state.elapsed();
 
   // Cause rebuilds only when second changes.
   @override

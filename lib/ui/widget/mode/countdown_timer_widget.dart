@@ -21,7 +21,7 @@ class _TimerOperations implements TimerOperations {
   const _TimerOperations();
 
   @override
-  Duration extractDuration(TimerState state) => state.remaining!;
+  Duration extractDuration(TimerState state) => state.remaining()!;
 
   // Cause rebuilds only when second changes, but switch to 10 rebuilds per
   // second if there are _subSecondThreshold or less seconds left.

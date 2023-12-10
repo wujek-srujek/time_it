@@ -45,7 +45,6 @@ class RoundDataNotifier extends _$RoundDataNotifier {
   int? _fastestRoundIndex;
 
   late Duration _previousElapsed;
-  late Duration Function() _elapsed;
 
   @override
   RoundData? build() {
@@ -55,14 +54,12 @@ class RoundDataNotifier extends _$RoundDataNotifier {
     _fastestRoundIndex = null;
 
     _previousElapsed = Duration.zero;
-    final timerNotifier = ref.watch(timerNotifierProvider.notifier);
-    _elapsed = () => timerNotifier.accurateElapsed;
 
     return null;
   }
 
   void registerRound() {
-    final elapsed = _elapsed();
+    final elapsed = ref.read(timerNotifierProvider).elapsed();
     final roundDuration = elapsed - _previousElapsed;
 
     if (_slowestRoundIndex == null ||
