@@ -15,7 +15,4 @@
       next round the next minute.
    1. Failing to register a round within the interval completes the workout.
 1. I18n.
-1. Improve timer: currently a ~10x second refresh rate is used all the time, but
-   it is actually only needed when fraction seconds are displayed. Start the
-   timer with e.g. 2x sec and than change dynamically?
 1. Navigator 2.0?
