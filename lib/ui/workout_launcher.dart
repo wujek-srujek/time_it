@@ -65,7 +65,7 @@ Future<void> _launchWorkout(
   List<IntervalGroup> intervalGroups,
   WorkoutPage workoutPage,
 ) {
-  ref.read(workoutIntervalsProvider.notifier).state = intervalGroups;
+  ref.read(workoutIntervalsNotifierProvider.notifier).state = intervalGroups;
 
   return Navigator.of(ref.context).push(
     MaterialPageRoute<void>(

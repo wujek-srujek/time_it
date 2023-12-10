@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../util/ticker.dart';
 import 'interval_group.dart';
 import 'keep_awake.dart';
 import 'player.dart';
 import 'workout_intervals.dart';
+
+part 'timer.g.dart';
 
 enum TimerStatus {
   running,
@@ -62,7 +64,8 @@ class TimerState {
 //   cancelled.
 // In all of the above cases, the user has terminated the workout in some way
 // and can use the app normally to prevent locking.
-class TimerNotifier extends AutoDisposeNotifier<TimerState> {
+@riverpod
+class TimerNotifier extends _$TimerNotifier {
   static const _defaultRefreshInterval = Duration(milliseconds: 100);
 
   late Iterable<IntervalInfo> _intervalInfos;
@@ -72,8 +75,6 @@ class TimerNotifier extends AutoDisposeNotifier<TimerState> {
 
   late Ticker _ticker;
   late StreamSubscription<Ticker> _tickerSubscription;
-
-  TimerNotifier._();
 
   @override
   TimerState build() {
@@ -91,7 +92,9 @@ class TimerNotifier extends AutoDisposeNotifier<TimerState> {
       }
     });
 
-    _intervalInfos = IntervalInfoIterable(ref.watch(workoutIntervalsProvider));
+    _intervalInfos = IntervalInfoIterable(
+      ref.watch(workoutIntervalsNotifierProvider),
+    );
     _iterator = _intervalInfos.iterator;
 
     final keepAwake = ref.read(keepAwakeProvider);
@@ -239,11 +242,6 @@ class TimerNotifier extends AutoDisposeNotifier<TimerState> {
         : remaining;
   }
 }
-
-final timerNotifierProvider =
-    NotifierProvider.autoDispose<TimerNotifier, TimerState>(
-  TimerNotifier._,
-);
 
 class _TimerDelegate {
   final void Function() onStart;

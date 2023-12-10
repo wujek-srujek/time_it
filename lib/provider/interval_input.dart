@@ -1,30 +1,30 @@
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'interval_definition.dart';
 
 export 'interval_definition.dart';
 
-class IntervalInputNotifier
-    extends AutoDisposeFamilyNotifier<IntervalDefinition, IntervalDefinition?> {
+part 'interval_input.g.dart';
+
+@riverpod
+class IntervalInputNotifier extends _$IntervalInputNotifier {
   late List<int> _input;
   late int _digitCount;
 
-  IntervalInputNotifier._();
-
   @override
-  IntervalDefinition build(IntervalDefinition? arg) {
-    if (arg == null) {
+  IntervalDefinition build(IntervalDefinition? prototype) {
+    if (prototype == null) {
       _input = List.filled(6, 0);
       _digitCount = 0;
 
       return const IntervalDefinition();
     }
 
-    final decomposed = _decompose(arg);
+    final decomposed = _decompose(prototype);
     _input = decomposed.$1;
     _digitCount = decomposed.$2;
 
-    return arg;
+    return prototype;
   }
 
   void addDigit(int digit) {
@@ -111,8 +111,3 @@ class IntervalInputNotifier
 
   return (input, digitCount);
 }
-
-final intervalInputNotifierProvider = NotifierProvider.autoDispose
-    .family<IntervalInputNotifier, IntervalDefinition, IntervalDefinition?>(
-  IntervalInputNotifier._,
-);

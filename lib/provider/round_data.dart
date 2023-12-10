@@ -2,9 +2,11 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:meta/meta.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'timer.dart';
+
+part 'round_data.g.dart';
 
 @immutable
 class RoundData {
@@ -35,7 +37,8 @@ class RoundData {
   bool get areAllRoundDurationsEqual => slowestRoundIndex == fastestRoundIndex;
 }
 
-class RoundDataNotifier extends AutoDisposeNotifier<RoundData?> {
+@riverpod
+class RoundDataNotifier extends _$RoundDataNotifier {
   final List<Duration> _roundDurations = [];
 
   int? _slowestRoundIndex;
@@ -43,8 +46,6 @@ class RoundDataNotifier extends AutoDisposeNotifier<RoundData?> {
 
   late Duration _previousElapsed;
   late Duration Function() _elapsed;
-
-  RoundDataNotifier._();
 
   @override
   RoundData? build() {
@@ -112,8 +113,3 @@ class RoundDataNotifier extends AutoDisposeNotifier<RoundData?> {
     return Duration(microseconds: stdDev.toInt());
   }
 }
-
-final roundDataNotifierProvider =
-    NotifierProvider.autoDispose<RoundDataNotifier, RoundData?>(
-  RoundDataNotifier._,
-);

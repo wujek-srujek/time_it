@@ -1,7 +1,9 @@
 import 'dart:async';
 
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+
+part 'keep_awake.g.dart';
 
 /// A simple service to keep the device awake.
 ///
@@ -12,4 +14,5 @@ class KeepAwake {
   void disable() => unawaited(WakelockPlus.disable());
 }
 
-final keepAwakeProvider = Provider((ref) => KeepAwake());
+@Riverpod(keepAlive: true)
+KeepAwake keepAwake(KeepAwakeRef ref) => KeepAwake();

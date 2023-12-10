@@ -1,11 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../util/iterable_x.dart';
 import 'interval_group.dart';
 
 export 'interval_definition.dart';
+
+part 'intervals_setup.g.dart';
 
 @immutable
 sealed class IntervalsSetupItem with EquatableMixin {
@@ -150,7 +152,8 @@ class IntervalsSetup with EquatableMixin {
 // Modification operations work with [Iterable]s for performance - this way
 // creating a new state and collecting all the necessary information along the
 // way is done using a single iteration only.
-class IntervalsSetupNotifier extends AutoDisposeNotifier<IntervalsSetup> {
+@riverpod
+class IntervalsSetupNotifier extends _$IntervalsSetupNotifier {
   final IntervalsSetup? _testSeed;
 
   @visibleForTesting
@@ -263,11 +266,6 @@ class IntervalsSetupNotifier extends AutoDisposeNotifier<IntervalsSetup> {
     );
   }
 }
-
-final intervalsSetupNotifierProvider =
-    NotifierProvider.autoDispose<IntervalsSetupNotifier, IntervalsSetup>(
-  IntervalsSetupNotifier.new,
-);
 
 extension _IterableOfGroupedItemX on Iterable<GroupedIntervalsSetupItem> {
   Iterable<IntervalsSetupItem> get unwrapped => map((gi) => gi.item);

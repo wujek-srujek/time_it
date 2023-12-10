@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'player.g.dart';
 
 /// A simple audio player.
 ///
@@ -48,9 +50,8 @@ class Player {
   }
 }
 
-final playerProvider = Provider(
-  (ref) => Player(),
-);
+@Riverpod(keepAlive: true)
+Player player(PlayerRef ref) => Player();
 
 Future<void> _preparePlayer(AudioPlayer player, String asset) {
   return Future.wait([
