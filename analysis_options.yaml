@@ -5,6 +5,8 @@ analyzer:
     strict-raw-types: true
   exclude:
     - '**/*.g.dart'
+  plugins:
+    - custom_lint
 
 linter:
   rules:

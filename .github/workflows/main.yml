@@ -13,6 +13,7 @@ jobs:
     - run: flutter pub get
     - run: dart format --output none --set-exit-if-changed lib test
     - run: flutter analyze
+    - run: dart run custom_lint
     - run: flutter test
     # Create a minimal dummy Firebase config file, the real one is unavailable.
     - run: echo '${{secrets.DUMMY_GOOGLE_SERVICES_JSON}}' > android/app/google-services.json

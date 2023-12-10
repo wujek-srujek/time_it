@@ -44,24 +44,22 @@ Future<void> main() async {
 
   await Player.init();
 
-  runApp(TimeItApp());
+  runApp(ProviderScope(child: TimeItApp()));
 }
 
 class TimeItApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp(
-        title: 'Time it',
-        darkTheme: ThemeData(
-          colorScheme: const ColorScheme.dark(
-            primary: Color(0xFF2196F3),
-            error: Colors.red,
-          ),
+    return MaterialApp(
+      title: 'Time it',
+      darkTheme: ThemeData(
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF2196F3),
+          error: Colors.red,
         ),
-        themeMode: ThemeMode.dark,
-        home: const ModeSelectionPage(),
       ),
+      themeMode: ThemeMode.dark,
+      home: const ModeSelectionPage(),
     );
   }
 }
